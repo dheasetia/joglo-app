@@ -311,9 +311,12 @@ const HalaqahList: React.FC = () => {
                     >
                         Santri <ExternalLink size={14} />
                     </Link>
-                    <button className="flex-1 btn bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs py-1.5 gap-1.5">
+                    <Link
+                        to={`/reports/halaqah/${halaqah.id}`}
+                        className="flex-1 btn bg-gray-100 text-gray-700 hover:bg-gray-200 text-xs py-1.5 gap-1.5"
+                    >
                         Detail <ChevronRight size={14} />
-                    </button>
+                    </Link>
                 </div>
             </div>
           ))}
