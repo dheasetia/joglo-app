@@ -38,14 +38,14 @@ const Login: React.FC = () => {
         <div>
           <div className="flex justify-center">
             <img
-              src="/joglo_icon.png"
+              src="/tahmis.png"
               alt="Tahmis"
-              className="h-16 w-16 rounded-full object-cover"
+              className="h-16 object-cover"
             />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Tahmis</h2>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">TAHMIS</h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Silakan masuk ke akun Anda
+            Tahfizh Monitoring System <br/> <strong>Pesantren Joglo Qur'an Boyolali</strong>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

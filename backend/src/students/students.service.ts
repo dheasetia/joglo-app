@@ -6,7 +6,18 @@ import { CreateStudentDto, UpdateStudentDto } from './dto/student.dto';
 export class StudentsService {
   constructor(private prisma: PrismaService) {}
 
+  private normalizeOptionalString(value?: string) {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+
   async create(dto: CreateStudentDto) {
+    const normalizedNis = this.normalizeOptionalString(dto.nis);
+
     // Check if halaqah exists
     const halaqah = await this.prisma.halaqah.findUnique({
       where: { id: dto.halaqahId },
@@ -17,17 +28,20 @@ export class StudentsService {
     }
 
     // Check unique NIS if provided
-    if (dto.nis) {
+    if (normalizedNis) {
       const existing = await this.prisma.student.findUnique({
-        where: { nis: dto.nis },
+        where: { nis: normalizedNis },
       });
       if (existing) {
-        throw new ConflictException(`Student with NIS ${dto.nis} already exists`);
+        throw new ConflictException(`Student with NIS ${normalizedNis} already exists`);
       }
     }
 
     return this.prisma.student.create({
-      data: dto,
+      data: {
+        ...dto,
+        nis: normalizedNis,
+      },
       include: {
         halaqah: {
           include: {
@@ -89,11 +103,25 @@ export class StudentsService {
   }
 
   async update(id: string, dto: UpdateStudentDto) {
-    await this.findOne(id);
+    const existingStudent = await this.findOne(id);
+    const normalizedNis = this.normalizeOptionalString(dto.nis);
+
+    if (normalizedNis && normalizedNis !== existingStudent.nis) {
+      const studentWithSameNis = await this.prisma.student.findUnique({
+        where: { nis: normalizedNis },
+      });
+
+      if (studentWithSameNis) {
+        throw new ConflictException(`Student with NIS ${normalizedNis} already exists`);
+      }
+    }
 
     return this.prisma.student.update({
       where: { id },
-      data: dto,
+      data: {
+        ...dto,
+        nis: dto.nis === undefined ? undefined : normalizedNis,
+      },
       include: {
         halaqah: true,
       },
