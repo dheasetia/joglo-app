@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  photoUrl     String?
+  role         UserRole
+  isActive     Boolean   @default(true)
+  teacher      Teacher?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([role])
+  @@index([isActive])
+}
+
+model Teacher {
+  id           String                @id @default(cuid())
+  userId       String                @unique
+  fullName     String
+  phone        String?
+  notes        String?
+  isActive     Boolean               @default(true)
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  halaqahs     Halaqah[]
+  sessions     MemorizationSession[]
+  exams        MemorizationExam[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@index([fullName])
+  @@index([isActive])
+}
+
+model Halaqah {
+  id           String                @id @default(cuid())
+  name         String
+  description  String?
+  teacherId    String
+  isActive     Boolean               @default(true)
+  teacher      Teacher               @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  students     Student[]
+  sessions     MemorizationSession[]
+  exams        MemorizationExam[]
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@index([teacherId])
+  @@index([isActive])
+  @@unique([teacherId, name])
+}
+
+model Student {
+  id                    String                @id @default(cuid())
+  nis                   String?               @unique
+  fullName              String
+  photoUrl              String?
+  gender                Gender
+  level                 String?
+  className             String?
+  halaqahId             String
+  isActive              Boolean               @default(true)
+  currentJuz            Int                   @default(0)
+  currentPage           Int?
+  lastMemorizedPage     Int?
+  totalMemorizedPages   Int                   @default(0)
+  halaqah               Halaqah               @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
+  sessions              MemorizationSession[]
+  exams                 MemorizationExam[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([halaqahId])
+  @@index([fullName])
+  @@index([isActive])
+  @@index([currentJuz])
+}
+
+model MemorizationSession {
+  id                    String                @id @default(cuid())
+  sessionDate           DateTime
+  sessionType           SessionType
+  studentId             String
+  teacherId             String
+  halaqahId             String
+  startPage             Int?
+  endPage               Int?
+  totalPages            Int?
+  score                 Int
+  notes                 String?
+  recommendation        Recommendation
+  isApprovedForNextStep Boolean?
+  student               Student               @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  teacher               Teacher               @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  halaqah               Halaqah               @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+
+  @@index([studentId])
+  @@index([teacherId])
+  @@index([halaqahId])
+  @@index([sessionDate])
+  @@index([sessionType])
+}
+
+model MemorizationExam {
+  id                 String             @id @default(cuid())
+  examDate           DateTime
+  examType           ExamType
+  title              String?
+  studentId          String
+  teacherId          String
+  halaqahId          String
+  startPage          Int?
+  endPage            Int?
+  startJuz           Int?
+  endJuz             Int?
+  periodStart        DateTime?
+  periodEnd          DateTime?
+  score              Int
+  notes              String?
+  recommendation     Recommendation
+  resultStatus       ExamResultStatus
+  student            Student            @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  teacher            Teacher            @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  halaqah            Halaqah            @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([studentId])
+  @@index([teacherId])
+  @@index([halaqahId])
+  @@index([examDate])
+  @@index([examType])
+}
+
+enum UserRole {
+  ADMIN
+  MUHAFFIZH
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum SessionType {
+  TAS_HIH
+  ZIYADAH
+  MURAJAAH_SHUGHRA
+  MURAJAAH_KUBRO
+}
+
+enum ExamType {
+  WEEKLY
+  JUZ_IYYAH
+  FIVE_JUZ
+  FINAL_30_JUZ
+}
+
+enum Recommendation {
+  CONTINUE
+  REPEAT
+}
+
+enum ExamResultStatus {
+  PASSED
+  FAILED
+}

@@ -1,0 +1,26 @@
+{
+  "short_name": "Tahmis",
+  "name": "Tahmis",
+  "description": "Tahmis | Tahfizh Monitoring System",
+  "icons": [
+    {
+      "src": "joglo_icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "joglo_icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "joglo_icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

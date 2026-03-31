@@ -1,0 +1,11 @@
+# Git
+.git/
+
+# IDE
+.idea/
+
+# macOS
+.DS_Store
+
+# Project specific
+.junie/
