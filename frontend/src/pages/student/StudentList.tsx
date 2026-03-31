@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Student, Halaqah, UserRole } from '../../types';
@@ -6,16 +6,12 @@ import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/modals/Modal';
 import { useToast } from '../../components/common/toast/ToastProvider';
 import { 
-  GraduationCap, 
   Search, 
   Plus, 
   Filter, 
-  MoreVertical, 
   Edit, 
   Trash2,
-  BookOpen,
-  Calendar,
-  ChevronRight
+  BookOpen
 } from 'lucide-react';
 
 const StudentList: React.FC = () => {
@@ -59,11 +55,7 @@ const StudentList: React.FC = () => {
   const isEditing = !!selectedStudent;
   const classOptions = classOptionsByLevel[formData.level] || [];
 
-  useEffect(() => {
-    fetchData();
-  }, [selectedHalaqah]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [studentsRes, halaqahsRes] = await Promise.all([
@@ -79,7 +71,11 @@ const StudentList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedHalaqah]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleOpenCreateModal = () => {
     setSelectedStudent(null);

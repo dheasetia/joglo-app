@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Student, MemorizationSession, MemorizationExam } from '../../types';
@@ -10,8 +10,7 @@ import {
   Award, 
   TrendingUp,
   CheckCircle,
-  XCircle,
-  ChevronRight
+  XCircle
 } from 'lucide-react';
 
 const StudentReport: React.FC = () => {
@@ -19,11 +18,7 @@ const StudentReport: React.FC = () => {
   const [student, setStudent] = useState<(Student & { sessions: MemorizationSession[], exams: MemorizationExam[] }) | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStudentReport();
-  }, [id]);
-
-  const fetchStudentReport = async () => {
+  const fetchStudentReport = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/reports/student/${id}`);
@@ -33,7 +28,11 @@ const StudentReport: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchStudentReport();
+  }, [fetchStudentReport]);
 
   if (loading) {
     return <div className="p-8 text-center text-gray-500">Memuat data laporan santri...</div>;

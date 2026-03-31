@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LogOut, Plus, Save } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -52,15 +52,7 @@ const ProfilePage: React.FC = () => {
   const [studentPhotoPreview, setStudentPhotoPreview] = useState('');
   const kelasOptions = kelasOptionsByJenjang[studentForm.jenjang] || [];
 
-  useEffect(() => {
-    if (user?.role === UserRole.MUHAFFIZH) {
-      fetchProfileData();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
-
-  const fetchProfileData = async () => {
+  const fetchProfileData = useCallback(async () => {
     try {
       setLoading(true);
       const [halaqahsRes, studentsRes] = await Promise.all([
@@ -117,7 +109,15 @@ const ProfilePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, user]);
+
+  useEffect(() => {
+    if (user?.role === UserRole.MUHAFFIZH) {
+      fetchProfileData();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchProfileData, user?.role]);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

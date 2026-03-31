@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../services/api';
-import { Halaqah, Student, UserRole, MemorizationExam, ExamResultStatus } from '../../types';
+import { Halaqah, Student, MemorizationExam, ExamResultStatus } from '../../types';
 import { 
   FileText, 
   Search, 
@@ -15,7 +14,6 @@ import {
 import { Link } from 'react-router-dom';
 
 const ReportList: React.FC = () => {
-  const { user } = useAuth();
   const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [exams, setExams] = useState<MemorizationExam[]>([]);
@@ -23,11 +21,7 @@ const ReportList: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'halaqah' | 'student' | 'exam'>('halaqah');
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, [activeTab]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       if (activeTab === 'halaqah') {
@@ -45,7 +39,11 @@ const ReportList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const filteredHalaqahs = halaqahs.filter(h => 
     h.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
-import { Teacher, UserRole } from '../../types';
-import { UserSquare2, Plus, Search, Phone, Mail, Edit2, Trash2, X } from 'lucide-react';
+import { UserRole } from '../../types';
+import { UserSquare2, Plus, Search, Phone, Mail, Edit2, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/modals/Modal';
-import { Menu, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
 import { useToast } from '../../components/common/toast/ToastProvider';
 
 const TeacherList: React.FC = () => {
@@ -30,11 +28,7 @@ const TeacherList: React.FC = () => {
 
   const isEditing = !!selectedTeacher;
 
-  useEffect(() => {
-    fetchTeachers();
-  }, [user]);
-
-  const fetchTeachers = async () => {
+  const fetchTeachers = useCallback(async () => {
     if (user?.role !== UserRole.ADMIN) return;
     try {
       setLoading(true);
@@ -45,7 +39,11 @@ const TeacherList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.role]);
+
+  useEffect(() => {
+    fetchTeachers();
+  }, [fetchTeachers]);
 
   const handleOpenCreateModal = () => {
     setSelectedTeacher(null);

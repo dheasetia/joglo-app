@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Halaqah, Student } from '../../types';
@@ -17,11 +17,7 @@ const HalaqahReport: React.FC = () => {
   const [halaqah, setHalaqah] = useState<(Halaqah & { students: (Student & { _count: { sessions: number } })[] }) | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchHalaqahReport();
-  }, [id]);
-
-  const fetchHalaqahReport = async () => {
+  const fetchHalaqahReport = useCallback(async () => {
     try {
       setLoading(true);
       const response = await api.get(`/reports/halaqah/${id}`);
@@ -31,7 +27,11 @@ const HalaqahReport: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchHalaqahReport();
+  }, [fetchHalaqahReport]);
 
   if (loading) {
     return <div className="p-8 text-center text-gray-500">Memuat laporan halaqah...</div>;

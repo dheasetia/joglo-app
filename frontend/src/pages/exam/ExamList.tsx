@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { ClipboardCheck, Search, Filter, Plus, Calendar, User, BookOpen, Edit2, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Search, Filter, Plus, Calendar, BookOpen, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/modals/Modal';
-import { Student, Halaqah, ExamType, ExamResultStatus, MemorizationExam } from '../../types';
+import { Student, ExamType, ExamResultStatus, MemorizationExam } from '../../types';
 import { useToast } from '../../components/common/toast/ToastProvider';
 
 const ExamList: React.FC = () => {
@@ -11,7 +11,6 @@ const ExamList: React.FC = () => {
   const toast = useToast();
   const [exams, setExams] = useState<MemorizationExam[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
-  const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('');
@@ -41,7 +40,7 @@ const ExamList: React.FC = () => {
 
   useEffect(() => {
     fetchExams();
-    fetchStudentsAndHalaqahs();
+    fetchStudents();
   }, []);
 
   useEffect(() => {
@@ -65,14 +64,10 @@ const ExamList: React.FC = () => {
     }
   };
 
-  const fetchStudentsAndHalaqahs = async () => {
+  const fetchStudents = async () => {
     try {
-      const [studentsRes, halaqahsRes] = await Promise.all([
-        api.get('/students'),
-        api.get('/halaqahs')
-      ]);
+      const studentsRes = await api.get('/students');
       setStudents(studentsRes.data);
-      setHalaqahs(halaqahsRes.data);
     } catch (error) {
       console.error('Failed to fetch support data', error);
     }

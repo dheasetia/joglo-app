@@ -1,18 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
 import { MemorizationSession, Student, SessionType, Recommendation } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { 
   BookOpen, 
-  Search, 
   Plus, 
   Calendar, 
   User, 
   CheckCircle2, 
   XCircle,
-  Clock,
-  ChevronRight,
   Filter,
   Edit2,
   Trash2
@@ -55,9 +52,25 @@ const SessionList: React.FC = () => {
 
   const isEditing = !!selectedSession;
 
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [sessionsRes, studentsRes] = await Promise.all([
+        api.get('/memorization-sessions', { params: { studentId: selectedStudent || undefined } }),
+        api.get('/students')
+      ]);
+      setSessions(sessionsRes.data);
+      setStudents(studentsRes.data);
+    } catch (error) {
+      console.error('Failed to fetch sessions', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedStudent]);
+
   useEffect(() => {
     fetchData();
-  }, [selectedStudent]);
+  }, [fetchData]);
 
   useEffect(() => {
     if (!formData.studentId) return;
@@ -97,21 +110,6 @@ const SessionList: React.FC = () => {
     setFormData((prev) => ({ ...prev, startPage: suggestedStartPage }));
   }, [isModalOpen, isEditing, formData.studentId, formData.sessionType, sessions]);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const [sessionsRes, studentsRes] = await Promise.all([
-        api.get('/memorization-sessions', { params: { studentId: selectedStudent || undefined } }),
-        api.get('/students')
-      ]);
-      setSessions(sessionsRes.data);
-      setStudents(studentsRes.data);
-    } catch (error) {
-      console.error('Failed to fetch sessions', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleOpenCreateModal = () => {
     setSelectedSession(null);

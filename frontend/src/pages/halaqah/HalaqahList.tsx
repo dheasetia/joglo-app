@@ -6,7 +6,6 @@ import {
   Users, 
   Plus, 
   Search, 
-  MoreVertical, 
   Edit, 
   Trash2,
   ExternalLink,
@@ -43,7 +42,7 @@ const HalaqahList: React.FC = () => {
     if (user?.role === UserRole.ADMIN) {
       fetchTeachers();
     }
-  }, []);
+  }, [user?.role]);
 
   const fetchHalaqahs = async () => {
     try {
