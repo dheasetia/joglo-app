@@ -106,7 +106,7 @@ const Login: React.FC = () => {
               onChange={(e) => setRememberMe(e.target.checked)}
             />
             <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-              Ingat saya (7 hari)
+              Ingat saya
             </label>
           </div>
 
