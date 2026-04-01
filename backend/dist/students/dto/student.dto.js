@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateStudentDto = exports.CreateStudentDto = void 0;
 const class_validator_1 = require("class-validator");
 const client_1 = require("@prisma/client");
+const class_transformer_1 = require("class-transformer");
 class CreateStudentDto {
     nis;
     fullName;
@@ -109,6 +110,19 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsBoolean)(),
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => {
+        if (value === undefined || value === null || typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const normalizedValue = value.trim().toLowerCase();
+            if (normalizedValue === 'true')
+                return true;
+            if (normalizedValue === 'false')
+                return false;
+        }
+        return value;
+    }),
     __metadata("design:type", Boolean)
 ], UpdateStudentDto.prototype, "isActive", void 0);
 __decorate([

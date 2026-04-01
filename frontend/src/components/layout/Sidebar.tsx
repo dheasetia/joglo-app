@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   LogOut,
@@ -23,14 +23,14 @@ const Sidebar: React.FC = () => {
   return (
     <div className="hidden md:flex flex-col h-full bg-primary text-white w-64 shadow-xl">
       <div className="p-6">
-        <h1 className="text-xl font-bold flex items-center gap-2">
+        <Link to="/" className="text-xl font-bold flex items-center gap-2">
           <img
             src="/joglo_icon.png"
             alt="Tahmis"
             className="h-8 w-8 rounded-full object-cover"
           />
           <span>Tahmis</span>
-        </h1>
+        </Link>
       </div>
 
       <nav className="flex-1 px-4 space-y-1 mt-4">

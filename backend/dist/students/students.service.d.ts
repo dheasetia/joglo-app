@@ -3,6 +3,7 @@ import { CreateStudentDto, UpdateStudentDto } from './dto/student.dto';
 export declare class StudentsService {
     private prisma;
     constructor(prisma: PrismaService);
+    private normalizeOptionalString;
     create(dto: CreateStudentDto): Promise<{
         halaqah: {
             teacher: {

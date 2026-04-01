@@ -1,5 +1,6 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, IsBoolean } from 'class-validator';
 import { Gender } from '@prisma/client';
+import { Transform } from 'class-transformer';
 
 export class CreateStudentDto {
   @IsString()
@@ -61,6 +62,19 @@ export class UpdateStudentDto {
 
   @IsBoolean()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || typeof value === 'boolean') {
+      return value;
+    }
+
+    if (typeof value === 'string') {
+      const normalizedValue = value.trim().toLowerCase();
+      if (normalizedValue === 'true') return true;
+      if (normalizedValue === 'false') return false;
+    }
+
+    return value;
+  })
   isActive?: boolean;
 
   @IsInt()
