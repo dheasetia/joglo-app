@@ -19,9 +19,9 @@ const resolvePhotoUrl = (url: string) => {
   if (/^https?:\/\//i.test(url)) return url;
 
   const normalizedPath = url.startsWith('/') ? url : `/${url}`;
-  const baseUrl = process.env.REACT_APP_API_URL || window.location.origin;
+  const baseUrl = api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin;
 
-  return `${baseUrl}${normalizedPath}`;
+  return new URL(normalizedPath, baseUrl).toString();
 };
 
 const StudentList: React.FC = () => {
