@@ -20,6 +20,11 @@ import Modal from '../../components/common/modals/Modal';
 import { useToast } from '../../components/common/toast/ToastProvider';
 
 const SessionList: React.FC = () => {
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterday = format(yesterdayDate, 'yyyy-MM-dd');
+
   const { user } = useAuth();
   const toast = useToast();
   const [searchParams] = useSearchParams();
@@ -30,7 +35,7 @@ const SessionList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState(studentIdParam || '');
   const [filterType, setFilterType] = useState('');
-  const [filterDate, setFilterDate] = useState('');
+  const [filterDate, setFilterDate] = useState('today_yesterday');
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -224,7 +229,13 @@ const SessionList: React.FC = () => {
 
   const filteredSessions = sessions.filter(s => {
     const matchesType = filterType ? s.sessionType === filterType : true;
-    const matchesDate = filterDate ? format(new Date(s.sessionDate), 'yyyy-MM-dd') === filterDate : true;
+    const sessionDate = format(new Date(s.sessionDate), 'yyyy-MM-dd');
+    const matchesDate =
+      filterDate === 'today_yesterday'
+        ? sessionDate === today || sessionDate === yesterday
+        : filterDate
+          ? sessionDate === filterDate
+          : true;
     return matchesType && matchesDate;
   });
 
@@ -443,12 +454,30 @@ const SessionList: React.FC = () => {
             <option value={SessionType.MURAJAAH_KUBRO}>Murajaah Kubro</option>
             <option value={SessionType.TAS_HIH}>Tas-hih</option>
           </select>
-          <input 
-            type="date"
-            className="py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-            value={filterDate}
-            onChange={(e) => setFilterDate(e.target.value)}
-          />
+          <div className="flex items-center gap-2">
+            <select
+              className="py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+              value={filterDate === 'today_yesterday' ? 'today_yesterday' : 'custom'}
+              onChange={(e) => {
+                if (e.target.value === 'today_yesterday') {
+                  setFilterDate('today_yesterday');
+                } else {
+                  setFilterDate(today);
+                }
+              }}
+            >
+              <option value="today_yesterday">Hari ini & kemarin</option>
+              <option value="custom">Pilih tanggal</option>
+            </select>
+            {filterDate !== 'today_yesterday' && (
+              <input
+                type="date"
+                className="py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+              />
+            )}
+          </div>
         </div>
       </div>
 

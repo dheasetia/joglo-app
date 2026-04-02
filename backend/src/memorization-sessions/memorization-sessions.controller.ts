@@ -91,9 +91,22 @@ export class MemorizationSessionsController {
     return this.sessionsService.update(id, updateSessionDto);
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sessionsService.remove(id);
+  async remove(@GetUser() user: any, @Param('id') id: string) {
+    if (user.role === UserRole.ADMIN) {
+      return this.sessionsService.remove(id, user.role);
+    }
+
+    const teacher = await this.prismaService.teacher.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+
+    if (!teacher) {
+      throw new UnauthorizedException('User is not a teacher');
+    }
+
+    return this.sessionsService.remove(id, user.role, teacher.id);
   }
 }

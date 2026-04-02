@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSessionDto, UpdateSessionDto } from './dto/session.dto';
-import { SessionType } from '@prisma/client';
+import { SessionType, UserRole } from '@prisma/client';
 
 @Injectable()
 export class MemorizationSessionsService {
@@ -142,8 +142,13 @@ export class MemorizationSessionsService {
     return updatedSession;
   }
 
-  async remove(id: string) {
+  async remove(id: string, requesterRole: UserRole, teacherId?: string) {
     const session = await this.findOne(id);
+
+    if (requesterRole === UserRole.MUHAFFIZH && session.teacherId !== teacherId) {
+      throw new ForbiddenException('Anda hanya dapat menghapus sesi milik halaqah Anda.');
+    }
+
     const result = await this.prisma.memorizationSession.delete({
       where: { id },
     });
