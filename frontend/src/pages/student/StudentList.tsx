@@ -14,6 +14,16 @@ import {
   BookOpen
 } from 'lucide-react';
 
+const resolvePhotoUrl = (url: string) => {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+
+  const normalizedPath = url.startsWith('/') ? url : `/${url}`;
+  const baseUrl = process.env.REACT_APP_API_URL || window.location.origin;
+
+  return `${baseUrl}${normalizedPath}`;
+};
+
 const StudentList: React.FC = () => {
   const levelOptions = ['SMP', 'SMA'] as const;
 
@@ -32,8 +42,10 @@ const StudentList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedHalaqah, setSelectedHalaqah] = useState(halaqahIdParam || '');
-  const [filterGender, setFilterGender] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterLevel, setFilterLevel] = useState('');
+  const [filterClass, setFilterClass] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 20;
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -169,10 +181,26 @@ const StudentList: React.FC = () => {
   const filteredStudents = students.filter(s => {
     const matchesSearch = s.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.nis?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGender = filterGender ? s.gender === filterGender : true;
-    const matchesStatus = filterStatus !== '' ? s.isActive === (filterStatus === 'true') : true;
-    return matchesSearch && matchesGender && matchesStatus;
+    const matchesLevel = filterLevel ? (s.level || '').toUpperCase() === filterLevel : true;
+    const matchesClass = filterClass ? (s.className || '') === filterClass : true;
+    return matchesSearch && matchesLevel && matchesClass;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / rowsPerPage));
+  const paginatedStudents = filteredStudents.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, filterLevel, filterClass, selectedHalaqah]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const isAdmin = user?.role === UserRole.ADMIN;
 
@@ -252,7 +280,7 @@ const StudentList: React.FC = () => {
             />
             {photoPreview && (
               <img
-                src={photoPreview.startsWith('/uploads') ? `${process.env.REACT_APP_API_URL || 'http://localhost:3000'}${photoPreview}` : photoPreview}
+                src={photoPreview.startsWith('/uploads') ? resolvePhotoUrl(photoPreview) : photoPreview}
                 alt="Preview santri"
                 className="mt-2 h-16 w-16 rounded-full object-cover border"
               />
@@ -385,23 +413,34 @@ const StudentList: React.FC = () => {
               ))}
             </select>
           </div>
-          <select 
+          <select
             className="py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-            value={filterGender}
-            onChange={(e) => setFilterGender(e.target.value)}
+            value={filterLevel}
+            onChange={(e) => {
+              setFilterLevel(e.target.value);
+              setFilterClass('');
+            }}
           >
-            <option value="">Semua Gender</option>
-            <option value="MALE">Laki-laki</option>
-            <option value="FEMALE">Perempuan</option>
+            <option value="">Semua Jenjang</option>
+            <option value="SMP">SMP</option>
+            <option value="SMA">SMA</option>
           </select>
-          <select 
+          <select
             className="py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            value={filterClass}
+            onChange={(e) => setFilterClass(e.target.value)}
           >
-            <option value="">Semua Status</option>
-            <option value="true">Aktif</option>
-            <option value="false">Nonaktif</option>
+            <option value="">Semua Kelas</option>
+            {['7', '8', '9', '10', '11', '12']
+              .filter((classOption) => {
+                if (!filterLevel) return true;
+                if (filterLevel === 'SMP') return ['7', '8', '9'].includes(classOption);
+                if (filterLevel === 'SMA') return ['10', '11', '12'].includes(classOption);
+                return true;
+              })
+              .map((classOption) => (
+                <option key={classOption} value={classOption}>{classOption}</option>
+              ))}
           </select>
         </div>
       </div>
@@ -421,6 +460,7 @@ const StudentList: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Santri</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Halaqah</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress Terakhir</th>
@@ -430,13 +470,16 @@ const StudentList: React.FC = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredStudents.length > 0 ? (
-                  filteredStudents.map((student) => (
+                  paginatedStudents.map((student, index) => (
                     <tr key={student.id} className="hover:bg-gray-50 transition-colors group">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {(currentPage - 1) * rowsPerPage + index + 1}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {student.photoUrl ? (
                             <img
-                              src={`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}${student.photoUrl}`}
+                              src={resolvePhotoUrl(student.photoUrl)}
                               alt={student.fullName}
                               className="flex-shrink-0 h-10 w-10 rounded-full object-cover"
                             />
@@ -498,7 +541,7 @@ const StudentList: React.FC = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500 italic">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 italic">
                        Tidak ada santri yang ditemukan.
                     </td>
                   </tr>
@@ -506,6 +549,34 @@ const StudentList: React.FC = () => {
               </tbody>
             </table>
           </div>
+          {filteredStudents.length > 0 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+              <p className="text-sm text-gray-600">
+                Menampilkan {(currentPage - 1) * rowsPerPage + 1} - {Math.min(currentPage * rowsPerPage, filteredStudents.length)} dari {filteredStudents.length} santri
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white"
+                >
+                  Sebelumnya
+                </button>
+                <span className="text-sm text-gray-600">
+                  Halaman {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white"
+                >
+                  Berikutnya
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
