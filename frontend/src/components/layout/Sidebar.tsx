@@ -8,6 +8,7 @@ import {
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { navigationItems } from './navigation';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -62,7 +63,7 @@ const Sidebar: React.FC = () => {
         <div className="flex items-center gap-3 px-3 py-2 mb-4">
           {user?.photoUrl ? (
             <img
-              src={`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}${user.photoUrl}`}
+              src={resolvePhotoUrl(user.photoUrl)}
               alt={user.name}
               className="h-10 w-10 rounded-full object-cover border border-white/30"
             />

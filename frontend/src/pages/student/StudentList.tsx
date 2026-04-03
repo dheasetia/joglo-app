@@ -5,6 +5,7 @@ import { Student, Halaqah, UserRole } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/modals/Modal';
 import { useToast } from '../../components/common/toast/ToastProvider';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 import { 
   Search, 
   Plus, 
@@ -13,16 +14,6 @@ import {
   Trash2,
   BookOpen
 } from 'lucide-react';
-
-const resolvePhotoUrl = (url: string) => {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-
-  const normalizedPath = url.startsWith('/') ? url : `/${url}`;
-  const baseUrl = api.defaults.baseURL || process.env.REACT_APP_API_URL || window.location.origin;
-
-  return new URL(normalizedPath, baseUrl).toString();
-};
 
 const StudentList: React.FC = () => {
   const levelOptions = ['SMP', 'SMA'] as const;

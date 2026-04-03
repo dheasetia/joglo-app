@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { Halaqah, Student, Teacher, UserRole } from '../../types';
 import { useToast } from '../../components/common/toast/ToastProvider';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 
 const ProfilePage: React.FC = () => {
   const toast = useToast();
@@ -95,7 +96,7 @@ const ProfilePage: React.FC = () => {
         confirmPassword: '',
       }));
       setProfilePhoto(null);
-      setProfilePhotoPreview(user?.photoUrl ? `${process.env.REACT_APP_API_URL || 'http://localhost:3000'}${user.photoUrl}` : '');
+      setProfilePhotoPreview(resolvePhotoUrl(user?.photoUrl));
 
       if (myHalaqah) {
         setHalaqahForm({
@@ -242,7 +243,7 @@ const ProfilePage: React.FC = () => {
         <div className="flex items-center gap-3">
           {user?.photoUrl ? (
             <img
-              src={`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}${user.photoUrl}`}
+              src={resolvePhotoUrl(user.photoUrl)}
               alt={user.name}
               className="h-12 w-12 rounded-full object-cover border"
             />

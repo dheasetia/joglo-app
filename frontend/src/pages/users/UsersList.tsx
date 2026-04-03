@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Users, Plus, Search, Edit2, Trash2, Shield, Mail, Check, X } from 'lucide-react';
 import Modal from '../../components/common/modals/Modal';
 import { useToast } from '../../components/common/toast/ToastProvider';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 
 const emptyForm = {
   id: undefined as string | undefined,
@@ -199,7 +200,7 @@ const UsersList: React.FC = () => {
                     <div className="flex items-center gap-2">
                       {u.photoUrl ? (
                         <img
-                          src={`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}${u.photoUrl}`}
+                          src={resolvePhotoUrl(u.photoUrl)}
                           alt={u.name}
                           className="w-8 h-8 rounded-full object-cover"
                         />

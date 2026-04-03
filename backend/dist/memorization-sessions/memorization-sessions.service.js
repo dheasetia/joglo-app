@@ -127,8 +127,11 @@ let MemorizationSessionsService = class MemorizationSessionsService {
         }
         return updatedSession;
     }
-    async remove(id) {
+    async remove(id, requesterRole, teacherId) {
         const session = await this.findOne(id);
+        if (requesterRole === client_1.UserRole.MUHAFFIZH && session.teacherId !== teacherId) {
+            throw new common_1.ForbiddenException('Anda hanya dapat menghapus sesi milik halaqah Anda.');
+        }
         const result = await this.prisma.memorizationSession.delete({
             where: { id },
         });

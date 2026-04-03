@@ -82,8 +82,18 @@ let MemorizationSessionsController = class MemorizationSessionsController {
     update(id, updateSessionDto) {
         return this.sessionsService.update(id, updateSessionDto);
     }
-    remove(id) {
-        return this.sessionsService.remove(id);
+    async remove(user, id) {
+        if (user.role === client_1.UserRole.ADMIN) {
+            return this.sessionsService.remove(id, user.role);
+        }
+        const teacher = await this.prismaService.teacher.findUnique({
+            where: { userId: user.id },
+            select: { id: true },
+        });
+        if (!teacher) {
+            throw new common_1.UnauthorizedException('User is not a teacher');
+        }
+        return this.sessionsService.remove(id, user.role, teacher.id);
     }
 };
 exports.MemorizationSessionsController = MemorizationSessionsController;
@@ -121,12 +131,13 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], MemorizationSessionsController.prototype, "update", null);
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
     (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
 ], MemorizationSessionsController.prototype, "remove", null);
 exports.MemorizationSessionsController = MemorizationSessionsController = __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtGuard, roles_guard_1.RolesGuard),
