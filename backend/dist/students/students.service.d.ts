@@ -1,8 +1,11 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStudentDto, UpdateStudentDto } from './dto/student.dto';
+import { StorageService } from '../storage/storage.service';
 export declare class StudentsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private readonly storageService;
+    constructor(prisma: PrismaService, storageService: StorageService);
+    private mapPhotoUrl;
     private normalizeOptionalString;
     create(dto: CreateStudentDto): Promise<{
         halaqah: {
@@ -123,6 +126,44 @@ export declare class StudentsService {
         totalMemorizedPages: number;
     }>;
     findByHalaqah(halaqahId: string): Promise<({
+        halaqah: {
+            teacher: {
+                id: string;
+                isActive: boolean;
+                createdAt: Date;
+                updatedAt: Date;
+                fullName: string;
+                phone: string | null;
+                notes: string | null;
+                userId: string;
+            };
+        } & {
+            name: string;
+            id: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            description: string | null;
+            teacherId: string;
+        };
+    } & {
+        id: string;
+        photoUrl: string | null;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+        fullName: string;
+        nis: string | null;
+        gender: import("@prisma/client").$Enums.Gender;
+        level: string | null;
+        className: string | null;
+        halaqahId: string;
+        currentJuz: number;
+        currentPage: number | null;
+        lastMemorizedPage: number | null;
+        totalMemorizedPages: number;
+    })[]>;
+    findByHalaqahIds(halaqahIds: string[]): Promise<({
         halaqah: {
             teacher: {
                 id: string;

@@ -3,10 +3,40 @@ import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyPasswordDto, UpdatePasswordDto, UpdateUserDto } from './dto/update-user.dto';
+import { sanitizePhotoUrl } from '../common/photo-url.util';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {}
+
+  private async mapPhotoUrl<T extends { photoUrl?: string | null }>(record: T): Promise<T> {
+    const sanitizedPhoto = sanitizePhotoUrl(record.photoUrl);
+
+    if (!sanitizedPhoto) {
+      return {
+        ...record,
+        photoUrl: sanitizedPhoto,
+      };
+    }
+
+    if (/^https?:\/\//i.test(sanitizedPhoto)) {
+      return {
+        ...record,
+        photoUrl: sanitizedPhoto,
+      };
+    }
+
+    const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+
+    return {
+      ...record,
+      photoUrl: signed.url,
+    };
+  }
 
   private isPrismaError(error: unknown): error is {
     code?: string;
@@ -38,7 +68,7 @@ export class UsersService {
 
   async findAll() {
     try {
-      return await this.prisma.user.findMany({
+      const users = await this.prisma.user.findMany({
         select: {
           id: true,
           email: true,
@@ -50,6 +80,8 @@ export class UsersService {
         },
         orderBy: { createdAt: 'desc' },
       });
+
+      return Promise.all(users.map((user) => this.mapPhotoUrl(user)));
     } catch (error) {
       if (!this.isMissingPhotoUrlColumnError(error)) {
         throw error;
@@ -138,7 +170,7 @@ export class UsersService {
     }
 
     const { passwordHash: _passwordHash, ...safeUser } = user;
-    return safeUser;
+    return this.mapPhotoUrl(safeUser);
   }
 
   async getMe(userId: string) {

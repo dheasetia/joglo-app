@@ -21,6 +21,8 @@ const memorization_sessions_module_1 = require("./memorization-sessions/memoriza
 const memorization_exams_module_1 = require("./memorization-exams/memorization-exams.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
 const reports_module_1 = require("./reports/reports.module");
+const storage_module_1 = require("./storage/storage.module");
+const file_assets_module_1 = require("./file-assets/file-assets.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -38,6 +40,8 @@ exports.AppModule = AppModule = __decorate([
             memorization_exams_module_1.MemorizationExamsModule,
             dashboard_module_1.DashboardModule,
             reports_module_1.ReportsModule,
+            storage_module_1.StorageModule,
+            file_assets_module_1.FileAssetsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

@@ -12,6 +12,8 @@ import { MemorizationSessionsModule } from './memorization-sessions/memorization
 import { MemorizationExamsModule } from './memorization-exams/memorization-exams.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { ReportsModule } from './reports/reports.module';
+import { StorageModule } from './storage/storage.module';
+import { FileAssetsModule } from './file-assets/file-assets.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { ReportsModule } from './reports/reports.module';
     MemorizationExamsModule,
     DashboardModule,
     ReportsModule,
+    StorageModule,
+    FileAssetsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

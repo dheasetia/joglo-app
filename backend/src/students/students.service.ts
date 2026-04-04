@@ -1,10 +1,40 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateStudentDto, UpdateStudentDto } from './dto/student.dto';
+import { sanitizePhotoUrl } from '../common/photo-url.util';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class StudentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {}
+
+  private async mapPhotoUrl<T extends { photoUrl?: string | null }>(record: T): Promise<T> {
+    const sanitizedPhoto = sanitizePhotoUrl(record.photoUrl);
+
+    if (!sanitizedPhoto) {
+      return {
+        ...record,
+        photoUrl: sanitizedPhoto,
+      };
+    }
+
+    if (/^https?:\/\//i.test(sanitizedPhoto)) {
+      return {
+        ...record,
+        photoUrl: sanitizedPhoto,
+      };
+    }
+
+    const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+
+    return {
+      ...record,
+      photoUrl: signed.url,
+    };
+  }
 
   private normalizeOptionalString(value?: string) {
     if (typeof value !== 'string') {
@@ -37,7 +67,7 @@ export class StudentsService {
       }
     }
 
-    return this.prisma.student.create({
+    const student = await this.prisma.student.create({
       data: {
         ...dto,
         nis: normalizedNis,
@@ -50,10 +80,12 @@ export class StudentsService {
         },
       },
     });
+
+    return this.mapPhotoUrl(student);
   }
 
   async findAll() {
-    return this.prisma.student.findMany({
+    const students = await this.prisma.student.findMany({
       include: {
         halaqah: {
           include: {
@@ -62,6 +94,8 @@ export class StudentsService {
         },
       },
     });
+
+    return Promise.all(students.map((student) => this.mapPhotoUrl(student)));
   }
 
   async findOne(id: string) {
@@ -86,11 +120,11 @@ export class StudentsService {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
-    return student;
+    return this.mapPhotoUrl(student);
   }
 
   async findByHalaqah(halaqahId: string) {
-    return this.prisma.student.findMany({
+    const students = await this.prisma.student.findMany({
       where: { halaqahId },
       include: {
         halaqah: {
@@ -100,6 +134,27 @@ export class StudentsService {
         },
       },
     });
+
+    return Promise.all(students.map((student) => this.mapPhotoUrl(student)));
+  }
+
+  async findByHalaqahIds(halaqahIds: string[]) {
+    const students = await this.prisma.student.findMany({
+      where: {
+        halaqahId: {
+          in: halaqahIds,
+        },
+      },
+      include: {
+        halaqah: {
+          include: {
+            teacher: true,
+          },
+        },
+      },
+    });
+
+    return Promise.all(students.map((student) => this.mapPhotoUrl(student)));
   }
 
   async update(id: string, dto: UpdateStudentDto) {
@@ -116,7 +171,7 @@ export class StudentsService {
       }
     }
 
-    return this.prisma.student.update({
+    const student = await this.prisma.student.update({
       where: { id },
       data: {
         ...dto,
@@ -126,6 +181,8 @@ export class StudentsService {
         halaqah: true,
       },
     });
+
+    return this.mapPhotoUrl(student);
   }
 
   async remove(id: string) {

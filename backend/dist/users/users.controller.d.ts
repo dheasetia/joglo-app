@@ -1,9 +1,12 @@
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyPasswordDto, UpdatePasswordDto, UpdateUserDto } from './dto/update-user.dto';
+import { StorageService } from '../storage/storage.service';
 export declare class UsersController {
     private usersService;
-    constructor(usersService: UsersService);
+    private readonly storageService;
+    constructor(usersService: UsersService, storageService: StorageService);
+    private static readonly imageUploadOptions;
     getMe(userId: string): Promise<{
         id: string;
         email: string;

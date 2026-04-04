@@ -23,16 +23,44 @@ const client_1 = require("@prisma/client");
 const get_user_decorator_1 = require("../auth/decorator/get-user.decorator");
 const prisma_service_1 = require("../prisma/prisma.service");
 const platform_express_1 = require("@nestjs/platform-express");
-const upload_util_1 = require("../common/upload.util");
+const multer_1 = require("multer");
+const storage_service_1 = require("../storage/storage.service");
 let StudentsController = class StudentsController {
     studentsService;
     prismaService;
-    constructor(studentsService, prismaService) {
+    storageService;
+    constructor(studentsService, prismaService, storageService) {
         this.studentsService = studentsService;
         this.prismaService = prismaService;
+        this.storageService = storageService;
     }
+    static imageUploadOptions = {
+        storage: (0, multer_1.memoryStorage)(),
+        limits: {
+            fileSize: 5 * 1024 * 1024,
+        },
+    };
     async create(createStudentDto, user, file) {
-        createStudentDto.photoUrl = (0, upload_util_1.toPublicUploadPath)(file) ?? createStudentDto.photoUrl;
+        if (file) {
+            const normalizedName = this.storageService.sanitizeFileName(file.originalname);
+            this.storageService.validateUploadConstraints({
+                originalName: normalizedName,
+                contentType: file.mimetype,
+                size: file.size,
+            });
+            const key = this.storageService.buildObjectKey({
+                tenantId: 'default-tenant',
+                module: 'students',
+                folder: 'photos',
+                originalName: normalizedName,
+            });
+            const uploaded = await this.storageService.uploadBuffer({
+                key,
+                contentType: file.mimetype,
+                body: file.buffer,
+            });
+            createStudentDto.photoUrl = uploaded.key;
+        }
         if (user.role === client_1.UserRole.MUHAFFIZH) {
             const teacher = await this.prismaService.teacher.findUnique({ where: { userId: user.id } });
             const halaqah = await this.prismaService.halaqah.findUnique({ where: { id: createStudentDto.halaqahId } });
@@ -56,25 +84,37 @@ let StudentsController = class StudentsController {
                     select: { id: true },
                 });
                 const halaqahIds = halaqahs.map((h) => h.id);
-                return this.prismaService.student.findMany({
-                    where: { halaqahId: { in: halaqahIds } },
-                    include: {
-                        halaqah: {
-                            include: {
-                                teacher: true,
-                            },
-                        },
-                    },
-                });
+                return this.studentsService.findByHalaqahIds(halaqahIds);
             }
+            return [];
         }
         return this.studentsService.findAll();
     }
     findOne(id) {
         return this.studentsService.findOne(id);
     }
-    update(id, updateStudentDto, file) {
-        updateStudentDto.photoUrl = (0, upload_util_1.toPublicUploadPath)(file) ?? updateStudentDto.photoUrl;
+    async update(id, updateStudentDto, file) {
+        if (file) {
+            const normalizedName = this.storageService.sanitizeFileName(file.originalname);
+            this.storageService.validateUploadConstraints({
+                originalName: normalizedName,
+                contentType: file.mimetype,
+                size: file.size,
+            });
+            const key = this.storageService.buildObjectKey({
+                tenantId: 'default-tenant',
+                module: 'students',
+                entityId: id,
+                folder: 'photos',
+                originalName: normalizedName,
+            });
+            const uploaded = await this.storageService.uploadBuffer({
+                key,
+                contentType: file.mimetype,
+                body: file.buffer,
+            });
+            updateStudentDto.photoUrl = uploaded.key;
+        }
         return this.studentsService.update(id, updateStudentDto);
     }
     remove(id) {
@@ -84,7 +124,7 @@ let StudentsController = class StudentsController {
 exports.StudentsController = StudentsController;
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('photo', upload_util_1.imageUploadOptions)),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('photo', StudentsController.imageUploadOptions)),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, get_user_decorator_1.GetUser)()),
     __param(2, (0, common_1.UploadedFile)()),
@@ -110,13 +150,13 @@ __decorate([
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, common_1.Patch)(':id'),
-    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('photo', upload_util_1.imageUploadOptions)),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('photo', StudentsController.imageUploadOptions)),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, student_dto_1.UpdateStudentDto, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], StudentsController.prototype, "update", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
@@ -130,6 +170,7 @@ exports.StudentsController = StudentsController = __decorate([
     (0, common_1.UseGuards)(jwt_guard_1.JwtGuard, roles_guard_1.RolesGuard),
     (0, common_1.Controller)('students'),
     __metadata("design:paramtypes", [students_service_1.StudentsService,
-        prisma_service_1.PrismaService])
+        prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], StudentsController);
 //# sourceMappingURL=students.controller.js.map

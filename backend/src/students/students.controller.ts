@@ -21,24 +21,55 @@ import { UserRole } from '@prisma/client';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { imageUploadOptions, toPublicUploadPath } from '../common/upload.util';
+import { memoryStorage } from 'multer';
+import { StorageService } from '../storage/storage.service';
 
 @UseGuards(JwtGuard, RolesGuard)
 @Controller('students')
 export class StudentsController {
   constructor(
     private readonly studentsService: StudentsService,
-    private prismaService: PrismaService
+    private prismaService: PrismaService,
+    private readonly storageService: StorageService,
   ) {}
 
+  private static readonly imageUploadOptions = {
+    storage: memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+  };
+
   @Post()
-  @UseInterceptors(FileInterceptor('photo', imageUploadOptions))
+  @UseInterceptors(FileInterceptor('photo', StudentsController.imageUploadOptions))
   async create(
     @Body() createStudentDto: CreateStudentDto,
     @GetUser() user: any,
     @UploadedFile() file?: any,
   ) {
-    createStudentDto.photoUrl = toPublicUploadPath(file) ?? createStudentDto.photoUrl;
+    if (file) {
+      const normalizedName = this.storageService.sanitizeFileName(file.originalname);
+      this.storageService.validateUploadConstraints({
+        originalName: normalizedName,
+        contentType: file.mimetype,
+        size: file.size,
+      });
+
+      const key = this.storageService.buildObjectKey({
+        tenantId: 'default-tenant',
+        module: 'students',
+        folder: 'photos',
+        originalName: normalizedName,
+      });
+
+      const uploaded = await this.storageService.uploadBuffer({
+        key,
+        contentType: file.mimetype,
+        body: file.buffer,
+      });
+
+      createStudentDto.photoUrl = uploaded.key;
+    }
     if (user.role === UserRole.MUHAFFIZH) {
       const teacher = await this.prismaService.teacher.findUnique({ where: { userId: user.id } });
       const halaqah = await this.prismaService.halaqah.findUnique({ where: { id: createStudentDto.halaqahId } });
@@ -67,17 +98,10 @@ export class StudentsController {
           select: { id: true },
         });
         const halaqahIds = halaqahs.map((h) => h.id);
-        return this.prismaService.student.findMany({
-          where: { halaqahId: { in: halaqahIds } },
-          include: {
-            halaqah: {
-              include: {
-                teacher: true,
-              },
-            },
-          },
-        });
+        return this.studentsService.findByHalaqahIds(halaqahIds);
       }
+
+      return [];
     }
 
     return this.studentsService.findAll();
@@ -90,13 +114,37 @@ export class StudentsController {
 
   @Roles(UserRole.ADMIN)
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('photo', imageUploadOptions))
-  update(
+  @UseInterceptors(FileInterceptor('photo', StudentsController.imageUploadOptions))
+  async update(
     @Param('id') id: string,
     @Body() updateStudentDto: UpdateStudentDto,
     @UploadedFile() file?: any,
   ) {
-    updateStudentDto.photoUrl = toPublicUploadPath(file) ?? updateStudentDto.photoUrl;
+    if (file) {
+      const normalizedName = this.storageService.sanitizeFileName(file.originalname);
+      this.storageService.validateUploadConstraints({
+        originalName: normalizedName,
+        contentType: file.mimetype,
+        size: file.size,
+      });
+
+      const key = this.storageService.buildObjectKey({
+        tenantId: 'default-tenant',
+        module: 'students',
+        entityId: id,
+        folder: 'photos',
+        originalName: normalizedName,
+      });
+
+      const uploaded = await this.storageService.uploadBuffer({
+        key,
+        contentType: file.mimetype,
+        body: file.buffer,
+      });
+
+      updateStudentDto.photoUrl = uploaded.key;
+    }
+
     return this.studentsService.update(id, updateStudentDto);
   }
 

@@ -12,10 +12,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StudentsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const photo_url_util_1 = require("../common/photo-url.util");
+const storage_service_1 = require("../storage/storage.service");
 let StudentsService = class StudentsService {
     prisma;
-    constructor(prisma) {
+    storageService;
+    constructor(prisma, storageService) {
         this.prisma = prisma;
+        this.storageService = storageService;
+    }
+    async mapPhotoUrl(record) {
+        const sanitizedPhoto = (0, photo_url_util_1.sanitizePhotoUrl)(record.photoUrl);
+        if (!sanitizedPhoto) {
+            return {
+                ...record,
+                photoUrl: sanitizedPhoto,
+            };
+        }
+        if (/^https?:\/\//i.test(sanitizedPhoto)) {
+            return {
+                ...record,
+                photoUrl: sanitizedPhoto,
+            };
+        }
+        const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+        return {
+            ...record,
+            photoUrl: signed.url,
+        };
     }
     normalizeOptionalString(value) {
         if (typeof value !== 'string') {
@@ -40,7 +64,7 @@ let StudentsService = class StudentsService {
                 throw new common_1.ConflictException(`Student with NIS ${normalizedNis} already exists`);
             }
         }
-        return this.prisma.student.create({
+        const student = await this.prisma.student.create({
             data: {
                 ...dto,
                 nis: normalizedNis,
@@ -53,9 +77,10 @@ let StudentsService = class StudentsService {
                 },
             },
         });
+        return this.mapPhotoUrl(student);
     }
     async findAll() {
-        return this.prisma.student.findMany({
+        const students = await this.prisma.student.findMany({
             include: {
                 halaqah: {
                     include: {
@@ -64,6 +89,7 @@ let StudentsService = class StudentsService {
                 },
             },
         });
+        return Promise.all(students.map((student) => this.mapPhotoUrl(student)));
     }
     async findOne(id) {
         const student = await this.prisma.student.findUnique({
@@ -85,10 +111,10 @@ let StudentsService = class StudentsService {
         if (!student) {
             throw new common_1.NotFoundException(`Student with ID ${id} not found`);
         }
-        return student;
+        return this.mapPhotoUrl(student);
     }
     async findByHalaqah(halaqahId) {
-        return this.prisma.student.findMany({
+        const students = await this.prisma.student.findMany({
             where: { halaqahId },
             include: {
                 halaqah: {
@@ -98,6 +124,24 @@ let StudentsService = class StudentsService {
                 },
             },
         });
+        return Promise.all(students.map((student) => this.mapPhotoUrl(student)));
+    }
+    async findByHalaqahIds(halaqahIds) {
+        const students = await this.prisma.student.findMany({
+            where: {
+                halaqahId: {
+                    in: halaqahIds,
+                },
+            },
+            include: {
+                halaqah: {
+                    include: {
+                        teacher: true,
+                    },
+                },
+            },
+        });
+        return Promise.all(students.map((student) => this.mapPhotoUrl(student)));
     }
     async update(id, dto) {
         const existingStudent = await this.findOne(id);
@@ -110,7 +154,7 @@ let StudentsService = class StudentsService {
                 throw new common_1.ConflictException(`Student with NIS ${normalizedNis} already exists`);
             }
         }
-        return this.prisma.student.update({
+        const student = await this.prisma.student.update({
             where: { id },
             data: {
                 ...dto,
@@ -120,6 +164,7 @@ let StudentsService = class StudentsService {
                 halaqah: true,
             },
         });
+        return this.mapPhotoUrl(student);
     }
     async remove(id) {
         await this.findOne(id);
@@ -131,6 +176,7 @@ let StudentsService = class StudentsService {
 exports.StudentsService = StudentsService;
 exports.StudentsService = StudentsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], StudentsService);
 //# sourceMappingURL=students.service.js.map

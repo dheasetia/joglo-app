@@ -46,10 +46,34 @@ exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const bcrypt = __importStar(require("bcrypt"));
+const photo_url_util_1 = require("../common/photo-url.util");
+const storage_service_1 = require("../storage/storage.service");
 let UsersService = class UsersService {
     prisma;
-    constructor(prisma) {
+    storageService;
+    constructor(prisma, storageService) {
         this.prisma = prisma;
+        this.storageService = storageService;
+    }
+    async mapPhotoUrl(record) {
+        const sanitizedPhoto = (0, photo_url_util_1.sanitizePhotoUrl)(record.photoUrl);
+        if (!sanitizedPhoto) {
+            return {
+                ...record,
+                photoUrl: sanitizedPhoto,
+            };
+        }
+        if (/^https?:\/\//i.test(sanitizedPhoto)) {
+            return {
+                ...record,
+                photoUrl: sanitizedPhoto,
+            };
+        }
+        const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+        return {
+            ...record,
+            photoUrl: signed.url,
+        };
     }
     isPrismaError(error) {
         return typeof error === 'object' && error !== null;
@@ -70,7 +94,7 @@ let UsersService = class UsersService {
     }
     async findAll() {
         try {
-            return await this.prisma.user.findMany({
+            const users = await this.prisma.user.findMany({
                 select: {
                     id: true,
                     email: true,
@@ -82,6 +106,7 @@ let UsersService = class UsersService {
                 },
                 orderBy: { createdAt: 'desc' },
             });
+            return Promise.all(users.map((user) => this.mapPhotoUrl(user)));
         }
         catch (error) {
             if (!this.isMissingPhotoUrlColumnError(error)) {
@@ -144,7 +169,7 @@ let UsersService = class UsersService {
             throw new common_1.NotFoundException('User not found');
         }
         const { passwordHash: _passwordHash, ...safeUser } = user;
-        return safeUser;
+        return this.mapPhotoUrl(safeUser);
     }
     async getMe(userId) {
         return this.findOne(userId);
@@ -298,6 +323,7 @@ let UsersService = class UsersService {
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

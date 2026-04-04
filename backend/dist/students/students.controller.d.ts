@@ -1,10 +1,13 @@
 import { StudentsService } from './students.service';
 import { CreateStudentDto, UpdateStudentDto } from './dto/student.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 export declare class StudentsController {
     private readonly studentsService;
     private prismaService;
-    constructor(studentsService: StudentsService, prismaService: PrismaService);
+    private readonly storageService;
+    constructor(studentsService: StudentsService, prismaService: PrismaService, storageService: StorageService);
+    private static readonly imageUploadOptions;
     create(createStudentDto: CreateStudentDto, user: any, file?: any): Promise<{
         halaqah: {
             teacher: {

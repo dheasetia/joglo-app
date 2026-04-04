@@ -1,9 +1,12 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateMyPasswordDto, UpdatePasswordDto, UpdateUserDto } from './dto/update-user.dto';
+import { StorageService } from '../storage/storage.service';
 export declare class UsersService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private readonly storageService;
+    constructor(prisma: PrismaService, storageService: StorageService);
+    private mapPhotoUrl;
     private isPrismaError;
     private isMissingPhotoUrlColumnError;
     findAll(): Promise<{

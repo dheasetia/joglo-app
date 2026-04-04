@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/modals/Modal';
 import { useToast } from '../../components/common/toast/ToastProvider';
 import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
+import { uploadFileToS3Direct } from '../../services/fileAssets';
 import { 
   Search, 
   Plus, 
@@ -121,26 +122,69 @@ const StudentList: React.FC = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
-      const payload = new FormData();
-      payload.append('fullName', formData.fullName);
-      payload.append('nis', formData.nis);
-      payload.append('gender', formData.gender);
-      payload.append('halaqahId', formData.halaqahId);
-      payload.append('level', formData.level);
-      payload.append('className', formData.className);
-      payload.append('isActive', String(formData.isActive));
+      let photoUrl: string | undefined;
+      let useMultipartFallback = false;
+
       if (photoFile) {
-        payload.append('photo', photoFile);
+        try {
+          const uploaded = await uploadFileToS3Direct(photoFile, {
+            fileName: photoFile.name,
+            contentType: photoFile.type,
+            module: 'students',
+            folder: 'photos',
+            entityId: isEditing ? selectedStudent?.id : undefined,
+            size: photoFile.size,
+            visibility: 'PUBLIC',
+          });
+
+          photoUrl = uploaded.key;
+        } catch (uploadError) {
+          console.error('Direct upload ke S3 gagal, fallback via backend akan dipakai.', uploadError);
+          useMultipartFallback = true;
+        }
       }
 
+      const payload = {
+        fullName: formData.fullName,
+        nis: formData.nis,
+        gender: formData.gender,
+        halaqahId: formData.halaqahId,
+        level: formData.level,
+        className: formData.className,
+        isActive: formData.isActive,
+        ...(photoUrl ? { photoUrl } : {}),
+      };
+
       if (isEditing) {
-        await api.patch(`/students/${selectedStudent.id}`, payload, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        if (useMultipartFallback && photoFile) {
+          const formPayload = new FormData();
+          formPayload.append('fullName', payload.fullName);
+          formPayload.append('nis', payload.nis);
+          formPayload.append('gender', payload.gender);
+          formPayload.append('halaqahId', payload.halaqahId);
+          formPayload.append('level', payload.level);
+          formPayload.append('className', payload.className);
+          formPayload.append('isActive', String(payload.isActive));
+          formPayload.append('photo', photoFile);
+          await api.patch(`/students/${selectedStudent.id}`, formPayload);
+        } else {
+          await api.patch(`/students/${selectedStudent.id}`, payload);
+        }
       } else {
-        await api.post('/students', payload, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        if (useMultipartFallback && photoFile) {
+          const formPayload = new FormData();
+          formPayload.append('fullName', payload.fullName);
+          formPayload.append('nis', payload.nis);
+          formPayload.append('gender', payload.gender);
+          formPayload.append('halaqahId', payload.halaqahId);
+          formPayload.append('level', payload.level);
+          formPayload.append('className', payload.className);
+          formPayload.append('isActive', String(payload.isActive));
+          formPayload.append('photo', photoFile);
+          await api.post('/students', formPayload);
+        } else {
+          await api.post('/students', payload);
+        }
       }
       setIsModalOpen(false);
       fetchData();
@@ -271,7 +315,7 @@ const StudentList: React.FC = () => {
             />
             {photoPreview && (
               <img
-                src={photoPreview.startsWith('/uploads') ? resolvePhotoUrl(photoPreview) : photoPreview}
+                src={photoPreview}
                 alt="Preview santri"
                 className="mt-2 h-16 w-16 rounded-full object-cover border"
               />

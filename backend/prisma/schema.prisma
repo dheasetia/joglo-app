@@ -7,51 +7,52 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  name         String
-  email        String    @unique
-  passwordHash String
-  photoUrl     String?
-  role         UserRole
-  isActive     Boolean   @default(true)
-  teacher      Teacher?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String      @id @default(cuid())
+  name          String
+  email         String      @unique
+  passwordHash  String
+  photoUrl      String?
+  role          UserRole
+  isActive      Boolean     @default(true)
+  teacher       Teacher?
+  uploadedFiles FileAsset[] @relation("FileUploadedByUser")
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([role])
   @@index([isActive])
 }
 
 model Teacher {
-  id           String                @id @default(cuid())
-  userId       String                @unique
-  fullName     String
-  phone        String?
-  notes        String?
-  isActive     Boolean               @default(true)
-  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  halaqahs     Halaqah[]
-  sessions     MemorizationSession[]
-  exams        MemorizationExam[]
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
+  id        String                @id @default(cuid())
+  userId    String                @unique
+  fullName  String
+  phone     String?
+  notes     String?
+  isActive  Boolean               @default(true)
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  halaqahs  Halaqah[]
+  sessions  MemorizationSession[]
+  exams     MemorizationExam[]
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
 
   @@index([fullName])
   @@index([isActive])
 }
 
 model Halaqah {
-  id           String                @id @default(cuid())
-  name         String
-  description  String?
-  teacherId    String
-  isActive     Boolean               @default(true)
-  teacher      Teacher               @relation(fields: [teacherId], references: [id], onDelete: Restrict)
-  students     Student[]
-  sessions     MemorizationSession[]
-  exams        MemorizationExam[]
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
+  id          String                @id @default(cuid())
+  name        String
+  description String?
+  teacherId   String
+  isActive    Boolean               @default(true)
+  teacher     Teacher               @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  students    Student[]
+  sessions    MemorizationSession[]
+  exams       MemorizationExam[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
 
   @@index([teacherId])
   @@index([isActive])
@@ -59,24 +60,25 @@ model Halaqah {
 }
 
 model Student {
-  id                    String                @id @default(cuid())
-  nis                   String?               @unique
-  fullName              String
-  photoUrl              String?
-  gender                Gender
-  level                 String?
-  className             String?
-  halaqahId             String
-  isActive              Boolean               @default(true)
-  currentJuz            Int                   @default(0)
-  currentPage           Int?
-  lastMemorizedPage     Int?
-  totalMemorizedPages   Int                   @default(0)
-  halaqah               Halaqah               @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
-  sessions              MemorizationSession[]
-  exams                 MemorizationExam[]
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
+  id                  String                @id @default(cuid())
+  nis                 String?               @unique
+  fullName            String
+  photoUrl            String?
+  gender              Gender
+  level               String?
+  className           String?
+  halaqahId           String
+  isActive            Boolean               @default(true)
+  currentJuz          Int                   @default(0)
+  currentPage         Int?
+  lastMemorizedPage   Int?
+  totalMemorizedPages Int                   @default(0)
+  halaqah             Halaqah               @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
+  sessions            MemorizationSession[]
+  exams               MemorizationExam[]
+  files               FileAsset[]
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
 
   @@index([halaqahId])
   @@index([fullName])
@@ -85,7 +87,7 @@ model Student {
 }
 
 model MemorizationSession {
-  id                    String                @id @default(cuid())
+  id                    String         @id @default(cuid())
   sessionDate           DateTime
   sessionType           SessionType
   studentId             String
@@ -98,11 +100,11 @@ model MemorizationSession {
   notes                 String?
   recommendation        Recommendation
   isApprovedForNextStep Boolean?
-  student               Student               @relation(fields: [studentId], references: [id], onDelete: Restrict)
-  teacher               Teacher               @relation(fields: [teacherId], references: [id], onDelete: Restrict)
-  halaqah               Halaqah               @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
+  student               Student        @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  teacher               Teacher        @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  halaqah               Halaqah        @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 
   @@index([studentId])
   @@index([teacherId])
@@ -112,34 +114,63 @@ model MemorizationSession {
 }
 
 model MemorizationExam {
-  id                 String             @id @default(cuid())
-  examDate           DateTime
-  examType           ExamType
-  title              String?
-  studentId          String
-  teacherId          String
-  halaqahId          String
-  startPage          Int?
-  endPage            Int?
-  startJuz           Int?
-  endJuz             Int?
-  periodStart        DateTime?
-  periodEnd          DateTime?
-  score              Int
-  notes              String?
-  recommendation     Recommendation
-  resultStatus       ExamResultStatus
-  student            Student            @relation(fields: [studentId], references: [id], onDelete: Restrict)
-  teacher            Teacher            @relation(fields: [teacherId], references: [id], onDelete: Restrict)
-  halaqah            Halaqah            @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id             String           @id @default(cuid())
+  examDate       DateTime
+  examType       ExamType
+  title          String?
+  studentId      String
+  teacherId      String
+  halaqahId      String
+  startPage      Int?
+  endPage        Int?
+  startJuz       Int?
+  endJuz         Int?
+  periodStart    DateTime?
+  periodEnd      DateTime?
+  score          Int
+  notes          String?
+  recommendation Recommendation
+  resultStatus   ExamResultStatus
+  student        Student          @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  teacher        Teacher          @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  halaqah        Halaqah          @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 
   @@index([studentId])
   @@index([teacherId])
   @@index([halaqahId])
   @@index([examDate])
   @@index([examType])
+}
+
+model FileAsset {
+  id           String         @id @default(cuid())
+  tenantId     String
+  originalName String
+  key          String         @unique
+  bucket       String
+  mimeType     String
+  size         Int
+  visibility   FileVisibility @default(PRIVATE)
+  module       String
+  entityId     String?
+  uploadedBy   String
+  studentId    String?
+  isDeleted    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  uploader User     @relation("FileUploadedByUser", fields: [uploadedBy], references: [id], onDelete: Restrict)
+  student  Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([module])
+  @@index([entityId])
+  @@index([uploadedBy])
+  @@index([studentId])
+  @@index([visibility])
+  @@index([isDeleted])
 }
 
 enum UserRole {
@@ -174,4 +205,9 @@ enum Recommendation {
 enum ExamResultStatus {
   PASSED
   FAILED
+}
+
+enum FileVisibility {
+  PUBLIC
+  PRIVATE
 }
