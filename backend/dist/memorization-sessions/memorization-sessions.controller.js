@@ -52,17 +52,31 @@ let MemorizationSessionsController = class MemorizationSessionsController {
         }
         return this.sessionsService.create(teacherId, createSessionDto);
     }
-    async findAll(user, studentId) {
-        if (studentId) {
+    async findAll(user, studentId, date) {
+        if (studentId && !date) {
             return this.sessionsService.findByStudent(studentId);
+        }
+        if (date && user.role === client_1.UserRole.ADMIN) {
+            return this.sessionsService.findByDate(date, {
+                studentId: studentId || undefined,
+            });
         }
         if (user.role === client_1.UserRole.MUHAFFIZH) {
             const teacher = await this.prismaService.teacher.findUnique({
                 where: { userId: user.id }
             });
             if (teacher) {
+                if (date) {
+                    return this.sessionsService.findByDate(date, {
+                        studentId: studentId || undefined,
+                        teacherId: teacher.id,
+                    });
+                }
                 return this.prismaService.memorizationSession.findMany({
-                    where: { teacherId: teacher.id },
+                    where: {
+                        teacherId: teacher.id,
+                        studentId: studentId || undefined,
+                    },
                     include: {
                         student: true,
                         teacher: true,
@@ -110,8 +124,9 @@ __decorate([
     (0, common_1.Get)(),
     __param(0, (0, get_user_decorator_1.GetUser)()),
     __param(1, (0, common_1.Query)('studentId')),
+    __param(2, (0, common_1.Query)('date')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, String, String]),
     __metadata("design:returntype", Promise)
 ], MemorizationSessionsController.prototype, "findAll", null);
 __decorate([

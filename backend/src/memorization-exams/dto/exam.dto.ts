@@ -23,20 +23,12 @@ export class CreateExamDto {
   halaqahId: string;
 
   @IsInt()
-  @IsOptional()
-  startPage?: number;
+  @IsNotEmpty()
+  startPage: number;
 
   @IsInt()
-  @IsOptional()
-  endPage?: number;
-
-  @IsInt()
-  @IsOptional()
-  startJuz?: number;
-
-  @IsInt()
-  @IsOptional()
-  endJuz?: number;
+  @IsNotEmpty()
+  endPage: number;
 
   @IsDateString()
   @IsOptional()
@@ -84,13 +76,6 @@ export class UpdateExamDto {
   @IsOptional()
   endPage?: number;
 
-  @IsInt()
-  @IsOptional()
-  startJuz?: number;
-
-  @IsInt()
-  @IsOptional()
-  endJuz?: number;
 
   @IsDateString()
   @IsOptional()

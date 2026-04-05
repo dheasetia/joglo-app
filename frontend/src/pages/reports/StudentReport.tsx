@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Student, MemorizationSession, MemorizationExam } from '../../types';
+import { getExamTypeLabel } from '../../utils/examTypeLabel';
 import { 
   ArrowLeft, 
   User, 
@@ -151,7 +152,7 @@ const StudentReport: React.FC = () => {
                       ) : (
                         <XCircle size={16} className="text-red-500" />
                       )}
-                      <span className="font-medium truncate max-w-[120px]">{exam.examType}</span>
+                      <span className="font-medium truncate max-w-[120px]">{getExamTypeLabel(exam.examType)}</span>
                     </div>
                     <span className="font-bold">{exam.score}</span>
                   </div>
@@ -217,7 +218,7 @@ const StudentReport: React.FC = () => {
               student.exams.map((exam) => (
                 <div key={exam.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{exam.examType}</p>
+                    <p className="text-sm font-semibold text-gray-900">{getExamTypeLabel(exam.examType)}</p>
                     <p className="text-xs text-gray-500">
                       {new Date(exam.examDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>

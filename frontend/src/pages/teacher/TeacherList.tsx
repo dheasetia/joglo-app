@@ -1,70 +1,85 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
-import { UserRole } from '../../types';
-import { UserSquare2, Plus, Search, Phone, Mail, Edit2, Trash2 } from 'lucide-react';
+import { User, UserRole } from '../../types';
+import { UserSquare2, Plus, Search, Mail, Edit2, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/modals/Modal';
 import { useToast } from '../../components/common/toast/ToastProvider';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
+
+type MuhaffizhUser = User & {
+  isActive: boolean;
+  createdAt?: string;
+};
+
+const emptyForm = {
+  id: undefined as string | undefined,
+  name: '',
+  email: '',
+  password: '',
+  photo: null as File | null,
+  isActive: true,
+};
 
 const TeacherList: React.FC = () => {
   const { user } = useAuth();
   const toast = useToast();
-  const [teachers, setTeachers] = useState<any[]>([]);
+  const [muhaffizhs, setMuhaffizhs] = useState<MuhaffizhUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
+  const [selectedMuhaffizh, setSelectedMuhaffizh] = useState<MuhaffizhUser | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    isActive: true,
-  });
+  const [formData, setFormData] = useState({ ...emptyForm });
+  const [photoPreview, setPhotoPreview] = useState('');
 
-  const isEditing = !!selectedTeacher;
+  const isEditing = !!formData.id;
 
-  const fetchTeachers = useCallback(async () => {
+  const fetchMuhaffizhs = useCallback(async () => {
     if (user?.role !== UserRole.ADMIN) return;
     try {
       setLoading(true);
-      const response = await api.get('/teachers');
-      setTeachers(response.data);
+      const response = await api.get('/users');
+      const users = Array.isArray(response.data) ? response.data : [];
+      setMuhaffizhs(users.filter((item) => item.role === UserRole.MUHAFFIZH));
     } catch (error) {
-      console.error('Failed to fetch teachers', error);
+      console.error('Failed to fetch muhaffizhs', error);
+      setMuhaffizhs([]);
     } finally {
       setLoading(false);
     }
   }, [user?.role]);
 
   useEffect(() => {
-    fetchTeachers();
-  }, [fetchTeachers]);
+    fetchMuhaffizhs();
+  }, [fetchMuhaffizhs]);
 
   const handleOpenCreateModal = () => {
-    setSelectedTeacher(null);
-    setFormData({ name: '', email: '', password: '', phone: '', isActive: true });
+    setSelectedMuhaffizh(null);
+    setFormData({ ...emptyForm });
+    setPhotoPreview('');
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (teacher: any) => {
-    setSelectedTeacher(teacher);
-    setFormData({ 
-      name: teacher.fullName, 
-      email: teacher.user?.email || '', 
-      password: '', // Password empty for edit
-      phone: teacher.phone || '',
-      isActive: teacher.isActive
+  const handleOpenEditModal = (muhaffizh: MuhaffizhUser) => {
+    setSelectedMuhaffizh(muhaffizh);
+    setFormData({
+      id: muhaffizh.id,
+      name: muhaffizh.name,
+      email: muhaffizh.email,
+      password: '',
+      photo: null,
+      isActive: muhaffizh.isActive,
     });
+    setPhotoPreview(muhaffizh.photoUrl || '');
     setIsModalOpen(true);
   };
 
-  const handleOpenDeleteModal = (teacher: any) => {
-    setSelectedTeacher(teacher);
+  const handleOpenDeleteModal = (muhaffizh: MuhaffizhUser) => {
+    setSelectedMuhaffizh(muhaffizh);
     setIsDeleteModalOpen(true);
   };
 
@@ -72,23 +87,33 @@ const TeacherList: React.FC = () => {
     e.preventDefault();
     try {
       setIsSubmitting(true);
+      const payload = new FormData();
+      payload.append('name', formData.name);
+      payload.append('email', formData.email);
+      payload.append('role', UserRole.MUHAFFIZH);
+      payload.append('isActive', String(formData.isActive));
+
+      if (formData.photo) {
+        payload.append('photo', formData.photo);
+      }
+
       if (isEditing) {
-        await api.patch(`/teachers/${selectedTeacher.id}`, {
-          fullName: formData.name,
-          phone: formData.phone,
-          isActive: formData.isActive
+        await api.patch(`/users/${formData.id}`, payload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
-        // Note: Email/Password update might need a separate endpoint or logic if needed
+        if (formData.password) {
+          await api.patch(`/users/${formData.id}/password`, {
+            password: formData.password,
+          });
+        }
       } else {
-        await api.post('/auth/register', {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: UserRole.MUHAFFIZH
+        payload.append('password', formData.password);
+        await api.post('/users', payload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
       }
       setIsModalOpen(false);
-      fetchTeachers();
+      fetchMuhaffizhs();
       toast.success(isEditing ? 'Data muhaffizh berhasil diperbarui.' : 'Muhaffizh baru berhasil ditambahkan.');
     } catch (error: any) {
       console.error('Operation failed', error);
@@ -99,12 +124,12 @@ const TeacherList: React.FC = () => {
   };
 
   const handleDelete = async () => {
-    if (!selectedTeacher) return;
+    if (!selectedMuhaffizh) return;
     try {
       setIsSubmitting(true);
-      await api.delete(`/teachers/${selectedTeacher.id}`);
+      await api.delete(`/users/${selectedMuhaffizh.id}`);
       setIsDeleteModalOpen(false);
-      fetchTeachers();
+      fetchMuhaffizhs();
       toast.success('Data muhaffizh berhasil dihapus.');
     } catch (error: any) {
       console.error('Delete failed', error);
@@ -114,10 +139,18 @@ const TeacherList: React.FC = () => {
     }
   };
 
-  const filteredTeachers = teachers.filter(t => 
-    t.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.user?.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMuhaffizhs = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+
+    return muhaffizhs.filter((item) => {
+      if (!query) return true;
+
+      return (
+        (item.name || '').toLowerCase().includes(query) ||
+        (item.email || '').toLowerCase().includes(query)
+      );
+    });
+  }, [muhaffizhs, searchTerm]);
 
   if (user?.role !== UserRole.ADMIN) {
     return (
@@ -136,7 +169,7 @@ const TeacherList: React.FC = () => {
             <UserSquare2 className="text-primary" />
             Manajemen Muhaffizh
           </h1>
-          <p className="text-gray-500">Kelola data pengajar dan akun mereka.</p>
+          <p className="text-gray-500">Kelola data akun muhaffizh.</p>
         </div>
         <button 
           onClick={handleOpenCreateModal}
@@ -150,7 +183,7 @@ const TeacherList: React.FC = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={isEditing ? 'Edit Data Muhaffizh' : 'Daftarkan Muhaffizh Baru'}
+        title={isEditing ? 'Edit Data Muhaffizh' : 'Tambah Muhaffizh Baru'}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -177,42 +210,48 @@ const TeacherList: React.FC = () => {
             />
             {isEditing && <p className="text-[10px] text-gray-500 mt-1">Email tidak dapat diubah.</p>}
           </div>
-          {!isEditing && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password (Min. 6 Karakter)</label>
-              <input
-                type="password"
-                required={!isEditing}
-                minLength={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-            </div>
-          )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Foto Profil</label>
             <input
-              type="text"
+              type="file"
+              accept="image/*"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-              placeholder="Contoh: 08123456789"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setFormData({ ...formData, photo: file });
+                if (file) {
+                  setPhotoPreview(URL.createObjectURL(file));
+                }
+              }}
+            />
+            {photoPreview && (
+              <img src={resolvePhotoUrl(photoPreview)} alt="Preview" className="mt-2 h-14 w-14 rounded-full object-cover border" />
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password {isEditing && <span className="text-gray-400">(Kosongkan jika tidak diubah)</span>}
+            </label>
+            <input
+              type="password"
+              required={!isEditing}
+              minLength={6}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           </div>
-          {isEditing && (
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                className="rounded border-gray-300 text-primary focus:ring-primary"
-              />
-              <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Akun Aktif</label>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+              className="rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Akun Aktif</label>
+          </div>
           <div className="pt-2 flex gap-3">
             <button
               type="button"
@@ -226,7 +265,7 @@ const TeacherList: React.FC = () => {
               disabled={isSubmitting}
               className="flex-1 btn btn-primary text-sm"
             >
-              {isSubmitting ? 'Menyimpan...' : (isEditing ? 'Simpan Perubahan' : 'Daftar Akun')}
+              {isSubmitting ? 'Menyimpan...' : (isEditing ? 'Simpan Perubahan' : 'Tambah Muhaffizh')}
             </button>
           </div>
         </form>
@@ -240,8 +279,8 @@ const TeacherList: React.FC = () => {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Apakah Anda yakin ingin menghapus muhaffizh <span className="font-bold">{selectedTeacher?.fullName}</span>? 
-            Tindakan ini tidak dapat dibatalkan dan mungkin mempengaruhi data halaqah yang diampu.
+            Apakah Anda yakin ingin menghapus muhaffizh <span className="font-bold">{selectedMuhaffizh?.name}</span>?
+            Tindakan ini tidak dapat dibatalkan.
           </p>
           <div className="flex gap-3">
             <button
@@ -283,63 +322,62 @@ const TeacherList: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto touch-pan-x">
-            <table className="min-w-[820px] divide-y divide-gray-200">
+            <table className="w-full min-w-[820px] divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kontak</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Halaqah</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredTeachers.map((teacher) => (
-                  <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
+                {filteredMuhaffizhs.map((muhaffizh) => (
+                  <tr key={muhaffizh.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                          {teacher.fullName.charAt(0)}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{teacher.fullName}</div>
-                          <div className="text-sm text-gray-500 flex items-center gap-1">
-                            <Mail size={12} /> {teacher.user?.email}
+                        {resolvePhotoUrl(muhaffizh.photoUrl) ? (
+                          <img
+                            src={resolvePhotoUrl(muhaffizh.photoUrl)}
+                            alt={muhaffizh.name}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {muhaffizh.name.charAt(0)}
                           </div>
+                        )}
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{muhaffizh.name}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 flex items-center gap-1">
-                        <Phone size={14} className="text-gray-400" />
-                        {teacher.phone || '-'}
+                        <Mail size={14} className="text-gray-400" />
+                        {muhaffizh.email}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {teacher._count?.halaqahs || 0} Halaqah
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        teacher.isActive 
+                        muhaffizh.isActive
                           ? 'bg-green-100 text-green-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {teacher.isActive ? 'Aktif' : 'Nonaktif'}
+                        {muhaffizh.isActive ? 'Aktif' : 'Nonaktif'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end gap-2">
                         <button 
-                          onClick={() => handleOpenEditModal(teacher)}
+                          onClick={() => handleOpenEditModal(muhaffizh)}
                           className="p-1 text-blue-600 hover:bg-blue-50 rounded"
                           title="Edit"
                         >
                           <Edit2 size={18} />
                         </button>
                         <button 
-                          onClick={() => handleOpenDeleteModal(teacher)}
+                          onClick={() => handleOpenDeleteModal(muhaffizh)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded"
                           title="Hapus"
                         >
@@ -349,9 +387,9 @@ const TeacherList: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredTeachers.length === 0 && (
+                {filteredMuhaffizhs.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-10 text-center text-gray-500 italic">
+                    <td colSpan={4} className="px-6 py-10 text-center text-gray-500 italic">
                       Tidak ada data muhaffizh yang ditemukan.
                     </td>
                   </tr>

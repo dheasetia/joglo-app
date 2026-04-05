@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/modals/Modal';
 import { Student, ExamType, ExamResultStatus, MemorizationExam } from '../../types';
 import { useToast } from '../../components/common/toast/ToastProvider';
+import { formatPageRangeWithJuz } from '../../utils/quranPage';
+import { getExamTypeLabel } from '../../utils/examTypeLabel';
 
 const ExamList: React.FC = () => {
   const { user } = useAuth();
@@ -28,8 +30,6 @@ const ExamList: React.FC = () => {
     halaqahId: '',
     startPage: undefined as number | undefined,
     endPage: undefined as number | undefined,
-    startJuz: undefined as number | undefined,
-    endJuz: undefined as number | undefined,
     score: 80,
     notes: '',
     recommendation: 'CONTINUE',
@@ -37,6 +37,7 @@ const ExamList: React.FC = () => {
   });
 
   const isEditing = !!selectedExam;
+  const formPageRangeText = formatPageRangeWithJuz(formData.startPage, formData.endPage);
 
   useEffect(() => {
     fetchExams();
@@ -82,8 +83,6 @@ const ExamList: React.FC = () => {
       halaqahId: '',
       startPage: undefined,
       endPage: undefined,
-      startJuz: undefined,
-      endJuz: undefined,
       score: 80,
       notes: '',
       recommendation: 'CONTINUE',
@@ -101,8 +100,6 @@ const ExamList: React.FC = () => {
       halaqahId: exam.halaqahId,
       startPage: exam.startPage || undefined,
       endPage: exam.endPage || undefined,
-      startJuz: exam.startJuz || undefined,
-      endJuz: exam.endJuz || undefined,
       score: exam.score,
       notes: exam.notes || '',
       recommendation: exam.recommendation,
@@ -124,8 +121,6 @@ const ExamList: React.FC = () => {
         ...formData,
         startPage: formData.startPage ? Number(formData.startPage) : undefined,
         endPage: formData.endPage ? Number(formData.endPage) : undefined,
-        startJuz: formData.startJuz ? Number(formData.startJuz) : undefined,
-        endJuz: formData.endJuz ? Number(formData.endJuz) : undefined,
         score: Number(formData.score)
       };
 
@@ -164,7 +159,7 @@ const ExamList: React.FC = () => {
   const filteredExams = exams.filter(exam => {
     const matchesSearch = exam.student?.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (exam.title && exam.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      exam.examType.toLowerCase().includes(searchTerm.toLowerCase());
+      getExamTypeLabel(exam.examType).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType ? exam.examType === filterType : true;
     const matchesStatus = filterStatus ? exam.resultStatus === filterStatus : true;
     return matchesSearch && matchesType && matchesStatus;
@@ -213,10 +208,10 @@ const ExamList: React.FC = () => {
                 value={formData.examType}
                 onChange={(e) => setFormData({ ...formData, examType: e.target.value as any })}
               >
-                <option value={ExamType.WEEKLY}>Mingguan</option>
+                <option value={ExamType.WEEKLY}>Pekanan</option>
                 <option value={ExamType.JUZ_IYYAH}>Juz'iyyah</option>
-                <option value={ExamType.FIVE_JUZ}>5 Juz</option>
-                <option value={ExamType.FINAL_30_JUZ}>30 Juz (Akhir)</option>
+                <option value={ExamType.FIVE_JUZ}>Kelipatan 5 juz</option>
+                <option value={ExamType.FINAL_30_JUZ}>Ujian Akhir 30 Juz</option>
               </select>
             </div>
           </div>
@@ -238,25 +233,33 @@ const ExamList: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Juz Mulai</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Halaman Mulai</label>
               <input
                 type="number"
+                required
+                min={1}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-                placeholder="Misal: 1"
-                value={formData.startJuz || ''}
-                onChange={(e) => setFormData({ ...formData, startJuz: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="Misal: 10"
+                value={formData.startPage || ''}
+                onChange={(e) => setFormData({ ...formData, startPage: e.target.value ? Number(e.target.value) : undefined })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Juz Akhir</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Halaman Akhir</label>
               <input
                 type="number"
+                required
+                min={1}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-                placeholder="Misal: 1"
-                value={formData.endJuz || ''}
-                onChange={(e) => setFormData({ ...formData, endJuz: e.target.value ? Number(e.target.value) : undefined })}
+                placeholder="Misal: 20"
+                value={formData.endPage || ''}
+                onChange={(e) => setFormData({ ...formData, endPage: e.target.value ? Number(e.target.value) : undefined })}
               />
             </div>
+          </div>
+
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            Otomatis Mushaf Madinah: <span className="font-semibold">{formPageRangeText}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -281,6 +284,17 @@ const ExamList: React.FC = () => {
                 <option value={ExamResultStatus.FAILED}>Mengulang</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+            <textarea
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
+              rows={3}
+              placeholder="Tulis catatan ujian..."
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            />
           </div>
 
           <div className="pt-2 flex gap-3">
@@ -350,10 +364,10 @@ const ExamList: React.FC = () => {
               onChange={(e) => setFilterType(e.target.value)}
             >
               <option value="">Semua Tipe</option>
-              <option value={ExamType.WEEKLY}>Mingguan</option>
+              <option value={ExamType.WEEKLY}>Pekanan</option>
               <option value={ExamType.JUZ_IYYAH}>Juz'iyyah</option>
-              <option value={ExamType.FIVE_JUZ}>5 Juz</option>
-              <option value={ExamType.FINAL_30_JUZ}>30 Juz</option>
+              <option value={ExamType.FIVE_JUZ}>Kelipatan 5 juz</option>
+              <option value={ExamType.FINAL_30_JUZ}>Ujian Akhir 30 Juz</option>
             </select>
           </div>
           <select 
@@ -378,12 +392,13 @@ const ExamList: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto touch-pan-x">
-            <table className="min-w-[900px] divide-y divide-gray-200">
+            <table className="w-full min-w-[900px] divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal & Santri</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe Ujian</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Materi</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hasil</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -402,14 +417,18 @@ const ExamList: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">
-                        {exam.examType?.replace('_', ' ') ?? '-'}
+                        {getExamTypeLabel(exam.examType)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 flex items-center gap-1">
                         <BookOpen size={14} className="text-gray-400" />
-                        {exam.startJuz ? `Juz ${exam.startJuz} - ${exam.endJuz}` : 
-                         exam.startPage ? `Hal ${exam.startPage} - ${exam.endPage}` : '-'}
+                        {formatPageRangeWithJuz(exam.startPage, exam.endPage)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700 max-w-xs break-words">
+                        {exam.notes?.trim() || '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

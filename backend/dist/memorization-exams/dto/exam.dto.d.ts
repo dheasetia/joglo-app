@@ -5,10 +5,8 @@ export declare class CreateExamDto {
     title?: string;
     studentId: string;
     halaqahId: string;
-    startPage?: number;
-    endPage?: number;
-    startJuz?: number;
-    endJuz?: number;
+    startPage: number;
+    endPage: number;
     periodStart?: string;
     periodEnd?: string;
     score: number;
@@ -22,8 +20,6 @@ export declare class UpdateExamDto {
     title?: string;
     startPage?: number;
     endPage?: number;
-    startJuz?: number;
-    endJuz?: number;
     periodStart?: string;
     periodEnd?: string;
     score?: number;

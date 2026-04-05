@@ -25,6 +25,7 @@ let DashboardService = DashboardService_1 = class DashboardService {
         ms."id",
         COALESCE(ms."sessionDate", ms."createdAt", now()) AS "sessionDate",
         ms."score",
+        ms."sessionType"::text AS "sessionType",
         s."fullName" AS "studentName",
         t."fullName" AS "teacherName"
       FROM "MemorizationSession" ms
@@ -38,6 +39,7 @@ let DashboardService = DashboardService_1 = class DashboardService {
         ms."id",
         COALESCE(ms."sessionDate", ms."createdAt", now()) AS "sessionDate",
         ms."score",
+        ms."sessionType"::text AS "sessionType",
         s."fullName" AS "studentName",
         t."fullName" AS "teacherName"
       FROM "MemorizationSession" ms
@@ -59,6 +61,7 @@ let DashboardService = DashboardService_1 = class DashboardService {
             id: row.id,
             sessionDate: row.sessionDate,
             score: row.score ?? 0,
+            sessionType: row.sessionType ?? '-',
             student: { fullName: row.studentName ?? '-' },
             teacher: { fullName: row.teacherName ?? '-' },
         }));
@@ -70,9 +73,12 @@ let DashboardService = DashboardService_1 = class DashboardService {
         COALESCE(me."examDate", me."createdAt", now()) AS "examDate",
         me."score",
         me."resultStatus"::text AS "resultStatus",
-        s."fullName" AS "studentName"
+        me."examType"::text AS "examType",
+        s."fullName" AS "studentName",
+        t."fullName" AS "teacherName"
       FROM "MemorizationExam" me
       LEFT JOIN "Student" s ON s."id" = me."studentId"
+      LEFT JOIN "Teacher" t ON t."id" = me."teacherId"
       ORDER BY me."examDate" DESC
       LIMIT 5
     `;
@@ -82,9 +88,12 @@ let DashboardService = DashboardService_1 = class DashboardService {
         COALESCE(me."examDate", me."createdAt", now()) AS "examDate",
         me."score",
         me."resultStatus"::text AS "resultStatus",
-        s."fullName" AS "studentName"
+        me."examType"::text AS "examType",
+        s."fullName" AS "studentName",
+        t."fullName" AS "teacherName"
       FROM "MemorizationExam" me
       LEFT JOIN "Student" s ON s."id" = me."studentId"
+      LEFT JOIN "Teacher" t ON t."id" = me."teacherId"
       WHERE me."teacherId" = ${teacherId ?? ''}
       ORDER BY me."examDate" DESC
       LIMIT 5
@@ -102,7 +111,9 @@ let DashboardService = DashboardService_1 = class DashboardService {
             examDate: row.examDate,
             score: row.score ?? 0,
             resultStatus: row.resultStatus ?? 'FAILED',
+            examType: row.examType ?? '-',
             student: { fullName: row.studentName ?? '-' },
+            teacher: { fullName: row.teacherName ?? '-' },
         }));
     }
     async getAdminStats() {

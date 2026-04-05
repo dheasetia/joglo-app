@@ -101,7 +101,7 @@ const HalaqahReport: React.FC = () => {
           <h3 className="font-bold text-gray-900">Daftar Santri & Aktivitas</h3>
         </div>
         <div className="overflow-x-auto touch-pan-x">
-          <table className="min-w-[760px] text-left border-collapse">
+          <table className="w-full min-w-[760px] text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider font-semibold">
                 <th className="px-6 py-4">Nama Santri</th>

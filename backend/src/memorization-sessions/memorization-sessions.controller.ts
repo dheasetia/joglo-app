@@ -53,9 +53,15 @@ export class MemorizationSessionsController {
   }
 
   @Get()
-  async findAll(@GetUser() user: any, @Query('studentId') studentId?: string) {
-    if (studentId) {
+  async findAll(@GetUser() user: any, @Query('studentId') studentId?: string, @Query('date') date?: string) {
+    if (studentId && !date) {
       return this.sessionsService.findByStudent(studentId);
+    }
+
+    if (date && user.role === UserRole.ADMIN) {
+      return this.sessionsService.findByDate(date, {
+        studentId: studentId || undefined,
+      });
     }
 
     if (user.role === UserRole.MUHAFFIZH) {
@@ -63,8 +69,18 @@ export class MemorizationSessionsController {
         where: { userId: user.id }
       });
       if (teacher) {
+        if (date) {
+          return this.sessionsService.findByDate(date, {
+            studentId: studentId || undefined,
+            teacherId: teacher.id,
+          });
+        }
+
         return this.prismaService.memorizationSession.findMany({
-          where: { teacherId: teacher.id },
+          where: {
+            teacherId: teacher.id,
+            studentId: studentId || undefined,
+          },
           include: {
             student: true,
             teacher: true,

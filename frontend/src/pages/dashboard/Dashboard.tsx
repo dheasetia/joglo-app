@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { UserRole } from '../../types';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { getExamTypeLabel } from '../../utils/examTypeLabel';
 import { 
   Users, 
   GraduationCap, 
@@ -26,11 +27,55 @@ interface Stats {
   upcomingExams?: any[];
 }
 
+const formatEnumLabel = (value: string | null | undefined) => {
+  if (!value) return '-';
+  return value
+    .toLowerCase()
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+};
+
+const formatUstadzName = (name: string | null | undefined) => {
+  if (!name || name === '-') return 'Ustadz -';
+  return `Ustadz ${name}`;
+};
+
 const formatDateSafe = (value: unknown, pattern: string, fallback = '-') => {
   if (!value) return fallback;
   const date = new Date(value as string | number | Date);
   if (Number.isNaN(date.getTime())) return fallback;
   return format(date, pattern, { locale: id });
+};
+
+const getSessionTypeBadgeClass = (sessionType: string | null | undefined) => {
+  switch (sessionType) {
+    case 'TAS_HIH':
+      return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+    case 'ZIYADAH':
+      return 'bg-blue-100 text-blue-800 border border-blue-200';
+    case 'MURAJAAH_SHUGHRA':
+      return 'bg-amber-100 text-amber-800 border border-amber-200';
+    case 'MURAJAAH_KUBRO':
+      return 'bg-purple-100 text-purple-800 border border-purple-200';
+    default:
+      return 'bg-gray-100 text-gray-700 border border-gray-200';
+  }
+};
+
+const getExamTypeBadgeClass = (examType: string | null | undefined) => {
+  switch (examType) {
+    case 'WEEKLY':
+      return 'bg-sky-100 text-sky-800 border border-sky-200';
+    case 'JUZ_IYYAH':
+      return 'bg-violet-100 text-violet-800 border border-violet-200';
+    case 'FIVE_JUZ':
+      return 'bg-amber-100 text-amber-800 border border-amber-200';
+    case 'FINAL_30_JUZ':
+      return 'bg-rose-100 text-rose-800 border border-rose-200';
+    default:
+      return 'bg-gray-100 text-gray-700 border border-gray-200';
+  }
 };
 
 const Dashboard: React.FC = () => {
@@ -143,7 +188,10 @@ const Dashboard: React.FC = () => {
                 <div key={idx} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{session.student?.fullName}</p>
-                    <p className="text-xs text-gray-500">{session.sessionType} - {isAdmin ? session.teacher?.fullName : 'Setoran Baru'}</p>
+                    <p className="text-xs text-gray-500">{formatUstadzName(session.teacher?.fullName)}</p>
+                    <p className={`inline-flex mt-1 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full tracking-wide ${getSessionTypeBadgeClass(session.sessionType)}`}>
+                      {formatEnumLabel(session.sessionType)}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold text-primary">{session.score}</p>
@@ -168,12 +216,16 @@ const Dashboard: React.FC = () => {
                 <div key={idx} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{exam.student?.fullName}</p>
-                    <p className="text-xs text-gray-500">{exam.examType?.replace('_', ' ') ?? '-'}</p>
+                    <p className="text-xs text-gray-500">{formatUstadzName(exam.teacher?.fullName)}</p>
+                    <p className={`inline-flex mt-1 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full tracking-wide ${getExamTypeBadgeClass(exam.examType)}`}>
+                      {getExamTypeLabel(exam.examType)}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className={`text-xs font-bold px-2 py-0.5 rounded-full ${exam.resultStatus === 'PASSED' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                       {exam.resultStatus === 'PASSED' ? 'Lulus' : 'Gagal'}
                     </p>
+                    <p className="text-xs font-semibold text-gray-700 mt-1">Nilai: {exam.score ?? '-'}</p>
                     <p className="text-[10px] text-gray-400 mt-1">{formatDateSafe(exam.examDate, 'dd/MM/yyyy')}</p>
                   </div>
                 </div>

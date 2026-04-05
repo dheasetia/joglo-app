@@ -20,8 +20,6 @@ class CreateExamDto {
     halaqahId;
     startPage;
     endPage;
-    startJuz;
-    endJuz;
     periodStart;
     periodEnd;
     score;
@@ -57,24 +55,14 @@ __decorate([
 ], CreateExamDto.prototype, "halaqahId", void 0);
 __decorate([
     (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], CreateExamDto.prototype, "startPage", void 0);
 __decorate([
     (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], CreateExamDto.prototype, "endPage", void 0);
-__decorate([
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Number)
-], CreateExamDto.prototype, "startJuz", void 0);
-__decorate([
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Number)
-], CreateExamDto.prototype, "endJuz", void 0);
 __decorate([
     (0, class_validator_1.IsDateString)(),
     (0, class_validator_1.IsOptional)(),
@@ -111,8 +99,6 @@ class UpdateExamDto {
     title;
     startPage;
     endPage;
-    startJuz;
-    endJuz;
     periodStart;
     periodEnd;
     score;
@@ -146,16 +132,6 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], UpdateExamDto.prototype, "endPage", void 0);
-__decorate([
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Number)
-], UpdateExamDto.prototype, "startJuz", void 0);
-__decorate([
-    (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", Number)
-], UpdateExamDto.prototype, "endJuz", void 0);
 __decorate([
     (0, class_validator_1.IsDateString)(),
     (0, class_validator_1.IsOptional)(),

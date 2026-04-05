@@ -18,12 +18,11 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import Modal from '../../components/common/modals/Modal';
 import { useToast } from '../../components/common/toast/ToastProvider';
+import { formatPageRangeWithJuz } from '../../utils/quranPage';
 
 const SessionList: React.FC = () => {
   const today = format(new Date(), 'yyyy-MM-dd');
-  const yesterdayDate = new Date();
-  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-  const yesterday = format(yesterdayDate, 'yyyy-MM-dd');
+  const yesterday = format(new Date(Date.now() - 24 * 60 * 60 * 1000), 'yyyy-MM-dd');
 
   const { user } = useAuth();
   const toast = useToast();
@@ -33,9 +32,15 @@ const SessionList: React.FC = () => {
   const [sessions, setSessions] = useState<MemorizationSession[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [bottomDate, setBottomDate] = useState(today);
+  const [loadedDateKeys, setLoadedDateKeys] = useState<string[]>([]);
   const [selectedStudent, setSelectedStudent] = useState(studentIdParam || '');
   const [filterType, setFilterType] = useState('');
-  const [filterDate, setFilterDate] = useState('today_yesterday');
+  const [filterDate, setFilterDate] = useState('all');
+  const [isInfiniteEnabled, setIsInfiniteEnabled] = useState(true);
+  const loadMoreAnchorRef = useRef<HTMLDivElement | null>(null);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,26 +61,114 @@ const SessionList: React.FC = () => {
   });
 
   const isEditing = !!selectedSession;
+  const formPageRangeText = formatPageRangeWithJuz(formData.startPage, formData.endPage);
+
+  const getPreviousDateString = useCallback((dateStr: string) => {
+    const date = new Date(`${dateStr}T00:00:00`);
+    date.setDate(date.getDate() - 1);
+    return format(date, 'yyyy-MM-dd');
+  }, []);
+
+  const fetchSessionsByDate = useCallback(async (date: string) => {
+    const response = await api.get('/memorization-sessions', {
+      params: {
+        studentId: selectedStudent || undefined,
+        date,
+      },
+    });
+
+    return response.data as MemorizationSession[];
+  }, [selectedStudent]);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [sessionsRes, studentsRes] = await Promise.all([
-        api.get('/memorization-sessions', { params: { studentId: selectedStudent || undefined } }),
+      setHasMore(true);
+      setIsInfiniteEnabled(true);
+      setFilterDate('all');
+
+      const [todaySessions, yesterdaySessions, studentsRes] = await Promise.all([
+        fetchSessionsByDate(today),
+        fetchSessionsByDate(yesterday),
         api.get('/students')
       ]);
-      setSessions(sessionsRes.data);
+
+      setSessions([...todaySessions, ...yesterdaySessions]);
       setStudents(studentsRes.data);
+      setLoadedDateKeys([today, yesterday]);
+      setBottomDate(yesterday);
+
+      if (todaySessions.length === 0 && yesterdaySessions.length === 0) {
+        setHasMore(false);
+      }
     } catch (error) {
       console.error('Failed to fetch sessions', error);
     } finally {
       setLoading(false);
     }
-  }, [selectedStudent]);
+  }, [fetchSessionsByDate, today, yesterday]);
+
+  const loadPreviousDay = useCallback(async () => {
+    if (loading || isLoadingMore || !hasMore || !isInfiniteEnabled) {
+      return;
+    }
+
+    const targetDate = getPreviousDateString(bottomDate);
+
+    if (loadedDateKeys.includes(targetDate)) {
+      return;
+    }
+
+    try {
+      setIsLoadingMore(true);
+      const previousSessions = await fetchSessionsByDate(targetDate);
+
+      setLoadedDateKeys((prev) => [...prev, targetDate]);
+      setBottomDate(targetDate);
+
+      if (previousSessions.length === 0) {
+        setHasMore(false);
+        return;
+      }
+
+      setSessions((prev) => [...prev, ...previousSessions]);
+    } catch (error) {
+      console.error('Failed to load previous sessions', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [bottomDate, fetchSessionsByDate, getPreviousDateString, hasMore, isInfiniteEnabled, isLoadingMore, loadedDateKeys, loading]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!isInfiniteEnabled) return;
+
+    const anchor = loadMoreAnchorRef.current;
+    if (!anchor) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first?.isIntersecting) {
+          void loadPreviousDay();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '120px 0px',
+        threshold: 0,
+      }
+    );
+
+    observer.observe(anchor);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isInfiniteEnabled, loadPreviousDay, sessions.length]);
 
   useEffect(() => {
     if (!formData.studentId) return;
@@ -230,12 +323,7 @@ const SessionList: React.FC = () => {
   const filteredSessions = sessions.filter(s => {
     const matchesType = filterType ? s.sessionType === filterType : true;
     const sessionDate = format(new Date(s.sessionDate), 'yyyy-MM-dd');
-    const matchesDate =
-      filterDate === 'today_yesterday'
-        ? sessionDate === today || sessionDate === yesterday
-        : filterDate
-          ? sessionDate === filterDate
-          : true;
+    const matchesDate = filterDate === 'all' ? true : sessionDate === filterDate;
     return matchesType && matchesDate;
   });
 
@@ -342,6 +430,10 @@ const SessionList: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, endPage: e.target.value ? Number(e.target.value) : undefined })}
               />
             </div>
+          </div>
+
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            Otomatis Mushaf Madinah: <span className="font-semibold">{formPageRangeText}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -457,19 +549,21 @@ const SessionList: React.FC = () => {
           <div className="flex items-center gap-2">
             <select
               className="py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-              value={filterDate === 'today_yesterday' ? 'today_yesterday' : 'custom'}
+              value={isInfiniteEnabled ? 'today_infinite' : 'custom'}
               onChange={(e) => {
-                if (e.target.value === 'today_yesterday') {
-                  setFilterDate('today_yesterday');
+                if (e.target.value === 'today_infinite') {
+                  setIsInfiniteEnabled(true);
+                  setFilterDate('all');
                 } else {
+                  setIsInfiniteEnabled(false);
                   setFilterDate(today);
                 }
               }}
             >
-              <option value="today_yesterday">Hari ini & kemarin</option>
+              <option value="today_infinite">2 hari terakhir + scroll ke hari sebelumnya</option>
               <option value="custom">Pilih tanggal</option>
             </select>
-            {filterDate !== 'today_yesterday' && (
+            {!isInfiniteEnabled && (
               <input
                 type="date"
                 className="py-2 px-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
@@ -561,7 +655,8 @@ const SessionList: React.FC = () => {
                     <div className="text-sm">
                       <span className="text-gray-500 block mb-1">Materi:</span>
                       <div className="p-2 bg-gray-50 rounded border border-gray-100 font-medium">
-                         Halaman {session.startPage} s/d {session.endPage} ({session.totalPages} Halaman)
+                        {formatPageRangeWithJuz(session.startPage, session.endPage)}
+                        {session.totalPages ? ` • ${session.totalPages} Halaman` : ''}
                       </div>
                     </div>
                   )}
@@ -577,6 +672,25 @@ const SessionList: React.FC = () => {
               )}
             </div>
           ))}
+
+          {isInfiniteEnabled && hasMore && (
+            <div ref={loadMoreAnchorRef} className="h-2" />
+          )}
+
+          {isInfiniteEnabled && isLoadingMore && (
+            <div className="flex items-center justify-center py-4">
+              <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-600 shadow-sm">
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                Memuat data hari sebelumnya...
+              </div>
+            </div>
+          )}
+
+          {isInfiniteEnabled && !hasMore && sessions.length > 0 && (
+            <div className="text-center text-xs text-gray-400 py-2">
+              Tidak ada data sesi yang lebih lama.
+            </div>
+          )}
         </div>
       ) : (
         <div className="card py-12 flex flex-col items-center justify-center text-center">

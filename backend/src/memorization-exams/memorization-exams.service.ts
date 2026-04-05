@@ -1,18 +1,15 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExamDto, UpdateExamDto } from './dto/exam.dto';
-import { ExamType, ExamResultStatus } from '@prisma/client';
+import { ExamResultStatus } from '@prisma/client';
 
 @Injectable()
 export class MemorizationExamsService {
   constructor(private prisma: PrismaService) {}
 
   async create(teacherId: string, dto: CreateExamDto) {
-    if (dto.startPage && dto.endPage && dto.startPage > dto.endPage) {
+    if (dto.startPage > dto.endPage) {
       throw new BadRequestException('Start page cannot be greater than end page');
-    }
-    if (dto.startJuz && dto.endJuz && dto.startJuz > dto.endJuz) {
-      throw new BadRequestException('Start Juz cannot be greater than end Juz');
     }
 
     const student = await this.prisma.student.findUnique({
@@ -37,19 +34,11 @@ export class MemorizationExamsService {
       },
     });
 
-    // Update student current juz if passed JUZ_IYYAH or FIVE_JUZ
-    if (exam.resultStatus === ExamResultStatus.PASSED) {
-      if (exam.examType === ExamType.JUZ_IYYAH && exam.endJuz) {
-        await this.prisma.student.update({
-          where: { id: exam.studentId },
-          data: { currentJuz: exam.endJuz }
-        });
-      } else if (exam.examType === ExamType.FIVE_JUZ && exam.endJuz) {
-        await this.prisma.student.update({
-          where: { id: exam.studentId },
-          data: { currentJuz: exam.endJuz }
-        });
-      }
+    if (exam.resultStatus === ExamResultStatus.PASSED && exam.endPage) {
+      await this.prisma.student.update({
+        where: { id: exam.studentId },
+        data: { currentPage: exam.endPage }
+      });
     }
 
     return exam;
@@ -104,16 +93,8 @@ export class MemorizationExamsService {
     if (dto.startPage !== undefined || dto.endPage !== undefined) {
       const start = dto.startPage ?? oldExam.startPage;
       const end = dto.endPage ?? oldExam.endPage;
-      if (start && end && start > end) {
+      if (start !== null && end !== null && start > end) {
         throw new BadRequestException('Start page cannot be greater than end page');
-      }
-    }
-
-    if (dto.startJuz !== undefined || dto.endJuz !== undefined) {
-      const start = dto.startJuz ?? oldExam.startJuz;
-      const end = dto.endJuz ?? oldExam.endJuz;
-      if (start && end && start > end) {
-        throw new BadRequestException('Start Juz cannot be greater than end Juz');
       }
     }
 
@@ -131,14 +112,11 @@ export class MemorizationExamsService {
       },
     });
 
-    // Update currentJuz if pass status or endJuz changed
-    if (updatedExam.resultStatus === ExamResultStatus.PASSED && updatedExam.endJuz) {
-      if (updatedExam.examType === ExamType.JUZ_IYYAH || updatedExam.examType === ExamType.FIVE_JUZ) {
-        await this.prisma.student.update({
-          where: { id: updatedExam.studentId },
-          data: { currentJuz: updatedExam.endJuz }
-        });
-      }
+    if (updatedExam.resultStatus === ExamResultStatus.PASSED && updatedExam.endPage) {
+      await this.prisma.student.update({
+        where: { id: updatedExam.studentId },
+        data: { currentPage: updatedExam.endPage }
+      });
     }
 
     return updatedExam;

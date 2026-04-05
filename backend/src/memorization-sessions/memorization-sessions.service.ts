@@ -7,6 +7,22 @@ import { SessionType, UserRole } from '@prisma/client';
 export class MemorizationSessionsService {
   constructor(private prisma: PrismaService) {}
 
+  private buildDateRange(date: string) {
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      throw new BadRequestException('Format tanggal tidak valid');
+    }
+
+    const start = new Date(parsedDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(parsedDate);
+    end.setHours(23, 59, 59, 999);
+
+    return { start, end };
+  }
+
   async create(teacherId: string, dto: CreateSessionDto) {
     if (dto.startPage && dto.endPage && dto.startPage > dto.endPage) {
       throw new BadRequestException('Start page cannot be greater than end page');
@@ -58,6 +74,40 @@ export class MemorizationSessionsService {
       orderBy: {
         sessionDate: 'desc',
       },
+    });
+  }
+
+  async findByDate(
+    date: string,
+    options?: {
+      studentId?: string;
+      teacherId?: string;
+    }
+  ) {
+    const { start, end } = this.buildDateRange(date);
+
+    return this.prisma.memorizationSession.findMany({
+      where: {
+        studentId: options?.studentId,
+        teacherId: options?.teacherId,
+        sessionDate: {
+          gte: start,
+          lte: end,
+        },
+      },
+      include: {
+        student: true,
+        teacher: true,
+        halaqah: true,
+      },
+      orderBy: [
+        {
+          sessionDate: 'desc',
+        },
+        {
+          createdAt: 'desc',
+        },
+      ],
     });
   }
 

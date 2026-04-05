@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import api from '../../services/api';
 import { Halaqah, Student, MemorizationExam, ExamResultStatus } from '../../types';
+import { getExamTypeLabel } from '../../utils/examTypeLabel';
 import { 
   FileText, 
   Search, 
@@ -58,7 +59,7 @@ const ReportList: React.FC = () => {
 
   const filteredExams = exams.filter(e => 
     e.student?.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.examType.toLowerCase().includes(searchTerm.toLowerCase())
+    getExamTypeLabel(e.examType).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -208,7 +209,7 @@ const ReportList: React.FC = () => {
                         {exam.student?.fullName}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {exam.examType?.replace('_', ' ') ?? '-'} • {new Date(exam.examDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {getExamTypeLabel(exam.examType)} • {new Date(exam.examDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     </div>
                   </div>

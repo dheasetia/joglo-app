@@ -57,11 +57,11 @@ export declare class ReportsController {
             examDate: Date;
             examType: import("@prisma/client").$Enums.ExamType;
             title: string | null;
-            startJuz: number | null;
-            endJuz: number | null;
             periodStart: Date | null;
             periodEnd: Date | null;
             resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+            startJuz: number | null;
+            endJuz: number | null;
         }[];
     } & {
         id: string;

@@ -15,6 +15,7 @@ export declare class DashboardService {
             id: string;
             sessionDate: Date;
             score: number;
+            sessionType: string;
             student: {
                 fullName: string;
             };
@@ -27,7 +28,11 @@ export declare class DashboardService {
             examDate: Date;
             score: number;
             resultStatus: string;
+            examType: string;
             student: {
+                fullName: string;
+            };
+            teacher: {
                 fullName: string;
             };
         }[];
@@ -40,6 +45,7 @@ export declare class DashboardService {
             id: string;
             sessionDate: Date;
             score: number;
+            sessionType: string;
             student: {
                 fullName: string;
             };
@@ -52,7 +58,11 @@ export declare class DashboardService {
             examDate: Date;
             score: number;
             resultStatus: string;
+            examType: string;
             student: {
+                fullName: string;
+            };
+            teacher: {
                 fullName: string;
             };
         }[];

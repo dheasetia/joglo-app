@@ -14,6 +14,7 @@ export declare class DashboardController {
             id: string;
             sessionDate: Date;
             score: number;
+            sessionType: string;
             student: {
                 fullName: string;
             };
@@ -26,7 +27,11 @@ export declare class DashboardController {
             examDate: Date;
             score: number;
             resultStatus: string;
+            examType: string;
             student: {
+                fullName: string;
+            };
+            teacher: {
                 fullName: string;
             };
         }[];
@@ -38,6 +43,7 @@ export declare class DashboardController {
             id: string;
             sessionDate: Date;
             score: number;
+            sessionType: string;
             student: {
                 fullName: string;
             };
@@ -50,7 +56,11 @@ export declare class DashboardController {
             examDate: Date;
             score: number;
             resultStatus: string;
+            examType: string;
             student: {
+                fullName: string;
+            };
+            teacher: {
                 fullName: string;
             };
         }[];

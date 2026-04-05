@@ -106,8 +106,6 @@ export interface MemorizationExam {
   halaqahId: string;
   startPage?: number;
   endPage?: number;
-  startJuz?: number;
-  endJuz?: number;
   periodStart?: string;
   periodEnd?: string;
   score: number;

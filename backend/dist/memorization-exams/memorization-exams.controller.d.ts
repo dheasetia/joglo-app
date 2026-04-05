@@ -48,11 +48,11 @@ export declare class MemorizationExamsController {
         examDate: Date;
         examType: import("@prisma/client").$Enums.ExamType;
         title: string | null;
-        startJuz: number | null;
-        endJuz: number | null;
         periodStart: Date | null;
         periodEnd: Date | null;
         resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+        startJuz: number | null;
+        endJuz: number | null;
     }>;
     findAll(user: any, studentId?: string): Promise<({
         teacher: {
@@ -89,11 +89,11 @@ export declare class MemorizationExamsController {
         examDate: Date;
         examType: import("@prisma/client").$Enums.ExamType;
         title: string | null;
-        startJuz: number | null;
-        endJuz: number | null;
         periodStart: Date | null;
         periodEnd: Date | null;
         resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+        startJuz: number | null;
+        endJuz: number | null;
     })[]>;
     findOne(id: string): Promise<{
         teacher: {
@@ -147,11 +147,11 @@ export declare class MemorizationExamsController {
         examDate: Date;
         examType: import("@prisma/client").$Enums.ExamType;
         title: string | null;
-        startJuz: number | null;
-        endJuz: number | null;
         periodStart: Date | null;
         periodEnd: Date | null;
         resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+        startJuz: number | null;
+        endJuz: number | null;
     }>;
     update(id: string, updateExamDto: UpdateExamDto): Promise<{
         teacher: {
@@ -196,11 +196,11 @@ export declare class MemorizationExamsController {
         examDate: Date;
         examType: import("@prisma/client").$Enums.ExamType;
         title: string | null;
-        startJuz: number | null;
-        endJuz: number | null;
         periodStart: Date | null;
         periodEnd: Date | null;
         resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+        startJuz: number | null;
+        endJuz: number | null;
     }>;
     remove(id: string): Promise<{
         id: string;
@@ -217,10 +217,10 @@ export declare class MemorizationExamsController {
         examDate: Date;
         examType: import("@prisma/client").$Enums.ExamType;
         title: string | null;
-        startJuz: number | null;
-        endJuz: number | null;
         periodStart: Date | null;
         periodEnd: Date | null;
         resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+        startJuz: number | null;
+        endJuz: number | null;
     }>;
 }
