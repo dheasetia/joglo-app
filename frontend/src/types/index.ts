@@ -25,12 +25,17 @@ export interface Teacher {
   userId: string;
 }
 
+export enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
+
 export interface Student {
   id: string;
   nis?: string;
   fullName: string;
   photoUrl?: string;
-  gender: 'MALE' | 'FEMALE';
+  gender: Gender;
   level?: string;
   className?: string;
   halaqahId: string;
@@ -89,6 +94,23 @@ export interface SessionNoteSummary {
   PERHATIAN: number;
 }
 
+export interface ExamNote {
+  id: string;
+  examId: string;
+  noteType: SessionNoteType;
+  page: number;
+  line: number;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExamNoteSummary {
+  KESALAHAN: number;
+  TEGURAN: number;
+  PERHATIAN: number;
+}
+
 export interface MemorizationSession {
   id: string;
   sessionDate: string;
@@ -137,6 +159,8 @@ export interface MemorizationExam {
   notes?: string;
   recommendation: Recommendation;
   resultStatus: ExamResultStatus;
+  noteItems?: ExamNote[];
+  noteSummary?: ExamNoteSummary;
   student?: Student;
   teacher?: Teacher;
   halaqah?: Halaqah;

@@ -9,6 +9,7 @@ import StudentList from './pages/student/StudentList';
 import SessionList from './pages/session/SessionList';
 import SessionDetail from './pages/session/SessionDetail';
 import ExamList from './pages/exam/ExamList';
+import ExamDetail from './pages/exam/ExamDetail';
 import TeacherList from './pages/teacher/TeacherList';
 import ReportList from './pages/reports/ReportList';
 import StudentReport from './pages/reports/StudentReport';
@@ -32,6 +33,7 @@ function App() {
               <Route path="session" element={<SessionList />} />
               <Route path="session/:id" element={<SessionDetail />} />
               <Route path="exam" element={<ExamList />} />
+              <Route path="exam/:id" element={<ExamDetail />} />
               <Route path="teacher" element={<TeacherList />} />
               <Route path="users" element={<UsersList />} />
               <Route path="reports" element={<ReportList />} />

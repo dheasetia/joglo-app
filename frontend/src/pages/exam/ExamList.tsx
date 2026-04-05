@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { ClipboardCheck, Search, Filter, Plus, Calendar, BookOpen, Edit2, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Search, Filter, Plus, Calendar, BookOpen, Edit2, Trash2, Eye } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/modals/Modal';
 import { Student, ExamType, ExamResultStatus, MemorizationExam } from '../../types';
@@ -11,6 +12,7 @@ import { getExamTypeLabel } from '../../utils/examTypeLabel';
 const ExamList: React.FC = () => {
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
   const [exams, setExams] = useState<MemorizationExam[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,12 +128,15 @@ const ExamList: React.FC = () => {
 
       if (isEditing) {
         await api.patch(`/memorization-exams/${selectedExam.id}`, data);
+        setIsModalOpen(false);
+        fetchExams();
+        toast.success('Hasil ujian berhasil diperbarui.');
       } else {
-        await api.post('/memorization-exams', data);
+        const response = await api.post('/memorization-exams', data);
+        setIsModalOpen(false);
+        toast.success('Ujian berhasil dibuat, silakan isi detail.');
+        navigate(`/exam/${response.data.id}`);
       }
-      setIsModalOpen(false);
-      fetchExams();
-      toast.success(isEditing ? 'Hasil ujian berhasil diperbarui.' : 'Hasil ujian berhasil ditambahkan.');
     } catch (error) {
       console.error('Operation failed', error);
       alert('Gagal menyimpan hasil ujian.');
@@ -180,14 +185,14 @@ const ExamList: React.FC = () => {
           className="btn btn-primary gap-2"
         >
           <Plus size={18} />
-          Input Hasil Ujian
+          Tambah Ujian Baru
         </button>
       </div>
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={isEditing ? 'Edit Hasil Ujian' : 'Input Hasil Ujian'}
+        title={isEditing ? 'Edit Hasil Ujian' : 'Tambah Ujian Baru'}
       >
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
@@ -262,40 +267,44 @@ const ExamList: React.FC = () => {
             Otomatis Mushaf Madinah: <span className="font-semibold">{formPageRangeText}</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nilai</label>
-              <input
-                type="number"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-                value={formData.score}
-                onChange={(e) => setFormData({ ...formData, score: Number(e.target.value) })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-              <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-                value={formData.resultStatus}
-                onChange={(e) => setFormData({ ...formData, resultStatus: e.target.value as any })}
-              >
-                <option value={ExamResultStatus.PASSED}>Lulus</option>
-                <option value={ExamResultStatus.FAILED}>Mengulang</option>
-              </select>
-            </div>
-          </div>
+          {isEditing && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nilai</label>
+                  <input
+                    type="number"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
+                    value={formData.score}
+                    onChange={(e) => setFormData({ ...formData, score: Number(e.target.value) })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
+                    value={formData.resultStatus}
+                    onChange={(e) => setFormData({ ...formData, resultStatus: e.target.value as any })}
+                  >
+                    <option value={ExamResultStatus.PASSED}>Lulus</option>
+                    <option value={ExamResultStatus.FAILED}>Mengulang</option>
+                  </select>
+                </div>
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
-            <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-              rows={3}
-              placeholder="Tulis catatan ujian..."
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
+                  rows={3}
+                  placeholder="Tulis catatan ujian..."
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                />
+              </div>
+            </>
+          )}
 
           <div className="pt-2 flex gap-3">
             <button
@@ -310,7 +319,7 @@ const ExamList: React.FC = () => {
               disabled={isSubmitting}
               className="flex-1 btn btn-primary text-sm"
             >
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Hasil'}
+              {isSubmitting ? 'Menyimpan...' : (isEditing ? 'Simpan Hasil' : 'Lanjut')}
             </button>
           </div>
         </form>
@@ -399,6 +408,7 @@ const ExamList: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipe Ujian</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Materi</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Catatan</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hasil</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -432,6 +442,11 @@ const ExamList: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-xs text-gray-700">
+                        K: {exam.noteSummary?.KESALAHAN || 0} · T: {exam.noteSummary?.TEGURAN || 0} · P: {exam.noteSummary?.PERHATIAN || 0}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-bold text-gray-900">{exam.score}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -447,6 +462,13 @@ const ExamList: React.FC = () => {
                       <div className="flex justify-end gap-2">
                         {(user?.role === 'ADMIN' || user?.id === exam.teacher?.userId) && (
                           <>
+                            <button 
+                              onClick={() => navigate(`/exam/${exam.id}`)}
+                              className="p-1 text-amber-600 hover:bg-amber-50 rounded"
+                              title="Detail"
+                            >
+                              <Eye size={18} />
+                            </button>
                             <button 
                               onClick={() => handleOpenEditModal(exam)}
                               className="p-1 text-blue-600 hover:bg-blue-50 rounded"
@@ -471,7 +493,7 @@ const ExamList: React.FC = () => {
                 ))}
                 {filteredExams.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-10 text-center text-gray-500 italic">
+                    <td colSpan={8} className="px-6 py-10 text-center text-gray-500 italic">
                       Tidak ada riwayat ujian yang ditemukan.
                     </td>
                   </tr>

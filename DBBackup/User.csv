@@ -1,0 +1,10 @@
+"id","name","email","passwordHash","role","isActive","createdAt","updatedAt","photoUrl"
+"cmndr0lp40000xx0sfxxnyukq","Admin Joglo","admin@jogloquran.com","$2b$10$0LbG5aFIJIRGNxkT44RuR.9S/6btTKcAG9oNyVEELrYOEoXB9vDHC","ADMIN","true","2026-03-30 22:17:21.88","2026-03-31 22:33:03.491","/uploads/1774950211322-979910754.png"
+"cmndr9rto0000dh0sb732lpdx","Pukat Amiguro Hartono","pukat@jogloquran.com","$2b$10$OJPlSqD3m3iaYqHZy6ZJOuj71YVlGWHJLQrCbBOQYX96S3nlq6O7W","MUHAFFIZH","true","2026-03-30 22:24:29.724","2026-04-01 09:22:38.502","/uploads/1775035358490-395038649.jpg"
+"cmnf6jn4800032rtxahohyutg","Muhammad","muhammad@jogloquran.com","$2b$10$AIi22O2cIQJDpTAFnOC3M.TPtK/QD.UTFcYyHLC9TwYxWUyXNM04C","MUHAFFIZH","true","2026-03-31 22:19:50.6","2026-03-31 22:19:50.6",
+"cmnf6lnw200052rtxwh6zu35b","Dzul Izzy As Shiddiqi","izzy@jogloquran.com","$2b$10$rs3fGXH2rm49gnWUavcQnO4z0AJgVraSPDl4U1rEtbAXSDcLBmTFS","MUHAFFIZH","true","2026-03-31 22:21:24.914","2026-04-01 13:42:51.234","/uploads/1775049463433-217911241.jpg"
+"cmnf6mdt300072rtx0q8ggo5m","Wildan Nursyafiq","wildan@jogloquran.com","$2b$10$fT21zqyugOYJiU7NKhDys.RXE5jxGtBBrrb0wm15NXpZWwC8NGca.","MUHAFFIZH","true","2026-03-31 22:21:58.503","2026-04-01 13:19:17.937","/uploads/1775049557928-586961270.jpg"
+"cmnf6wk8q000c2rtx885mkxas","Laits Assyoifudin","laits@jogloquran.com","$2b$10$Wu8Iv3QEv9JQn/iRfhdhV.b7EViU4k/9t32SHV7edpnT9j4fQ1w3e","ADMIN","true","2026-03-31 22:29:53.402","2026-04-02 01:16:02.887","/uploads/1775092355736-107800864.jpg"
+"cmnf7sny7000r2rtxgi70cj18","Muhaffizh Joglo","muhaffizh@jogloquran.com","$2b$10$fPRlJL8GWTRTpNYVY6tlXesbkJJO0xKUZG9y4JusklP83S7y4bl3W","MUHAFFIZH","true","2026-03-31 22:54:51.199","2026-03-31 22:54:51.199",
+"cmnf86zu600102rtxwyzf4k7l","Hasan Amin","hasan@jogloquran.com","$2b$10$aWUGXsWFbVf3kja2a4dxguK5D4DUwvTmqgcO7pll09nnXKrMqd.Rm","MUHAFFIZH","true","2026-03-31 23:05:59.79","2026-03-31 23:05:59.79",
+"cmnf88b5500122rtxlk8qm6se","Irfansyah","irfansyah@jogloquran.com","$2b$10$kQahnIsHmhIJ7W9kpctyfO3RXhln2KDi9L8/SiqQLnqxnvchOQis6","MUHAFFIZH","true","2026-03-31 23:07:01.097","2026-03-31 23:07:01.097",
