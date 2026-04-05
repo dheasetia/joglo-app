@@ -106,7 +106,7 @@ const HalaqahReport: React.FC = () => {
               <tr className="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider font-semibold">
                 <th className="px-6 py-4">Nama Santri</th>
                 <th className="px-6 py-4">Capaian</th>
-                <th className="px-6 py-4 text-center">Total Sesi</th>
+                <th className="px-6 py-4 text-center">Total Tasmi'</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>

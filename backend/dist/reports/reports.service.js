@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportsService = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
 const prisma_service_1 = require("../prisma/prisma.service");
 let ReportsService = class ReportsService {
     prisma;
@@ -35,7 +36,24 @@ let ReportsService = class ReportsService {
         });
         if (!student)
             throw new common_1.NotFoundException('Student not found');
-        return student;
+        const memorizationProgress = await this.prisma.memorizationSession.aggregate({
+            where: {
+                studentId,
+                sessionType: client_1.SessionType.ZIYADAH,
+                recommendation: 'CONTINUE',
+            },
+            _sum: {
+                totalPages: true,
+            },
+            _max: {
+                endPage: true,
+            },
+        });
+        return {
+            ...student,
+            totalMemorizedPages: memorizationProgress._sum.totalPages ?? student.totalMemorizedPages,
+            lastMemorizedPage: memorizationProgress._max.endPage ?? student.lastMemorizedPage,
+        };
     }
     async getHalaqahReport(halaqahId) {
         const halaqah = await this.prisma.halaqah.findUnique({

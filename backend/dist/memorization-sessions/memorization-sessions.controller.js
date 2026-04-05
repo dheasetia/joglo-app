@@ -29,6 +29,26 @@ let MemorizationSessionsController = class MemorizationSessionsController {
         this.sessionsService = sessionsService;
         this.prismaService = prismaService;
     }
+    async getTeacherByUser(user) {
+        return this.prismaService.teacher.findUnique({
+            where: { userId: user.id },
+            select: { id: true },
+        });
+    }
+    async ensureSessionAccess(sessionId, user) {
+        const session = await this.sessionsService.findOne(sessionId);
+        if (user.role === client_1.UserRole.ADMIN) {
+            return session;
+        }
+        const teacher = await this.getTeacherByUser(user);
+        if (!teacher) {
+            throw new common_1.UnauthorizedException('User is not a teacher');
+        }
+        if (session.teacherId !== teacher.id) {
+            throw new common_1.UnauthorizedException('Anda tidak memiliki akses ke sesi ini');
+        }
+        return session;
+    }
     async create(user, createSessionDto) {
         const teacher = await this.prismaService.teacher.findUnique({
             where: { userId: user.id }
@@ -72,28 +92,21 @@ let MemorizationSessionsController = class MemorizationSessionsController {
                         teacherId: teacher.id,
                     });
                 }
-                return this.prismaService.memorizationSession.findMany({
-                    where: {
-                        teacherId: teacher.id,
-                        studentId: studentId || undefined,
-                    },
-                    include: {
-                        student: true,
-                        teacher: true,
-                        halaqah: true,
-                    },
-                    orderBy: {
-                        sessionDate: 'desc',
-                    },
-                });
+                return this.sessionsService.findByTeacher(teacher.id, studentId || undefined);
             }
         }
         return this.sessionsService.findAll();
     }
-    findOne(id) {
+    async findOne(user, id) {
+        await this.ensureSessionAccess(id, user);
         return this.sessionsService.findOne(id);
     }
-    update(id, updateSessionDto) {
+    async createNote(user, id, dto) {
+        await this.ensureSessionAccess(id, user);
+        return this.sessionsService.createNote(id, dto);
+    }
+    async update(user, id, updateSessionDto) {
+        await this.ensureSessionAccess(id, user);
         return this.sessionsService.update(id, updateSessionDto);
     }
     async remove(user, id) {
@@ -131,19 +144,31 @@ __decorate([
 ], MemorizationSessionsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
 ], MemorizationSessionsController.prototype, "findOne", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
-    (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Post)(':id/notes'),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, session_dto_1.UpdateSessionDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, String, session_dto_1.CreateSessionNoteDto]),
+    __metadata("design:returntype", Promise)
+], MemorizationSessionsController.prototype, "createNote", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, session_dto_1.UpdateSessionDto]),
+    __metadata("design:returntype", Promise)
 ], MemorizationSessionsController.prototype, "update", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),

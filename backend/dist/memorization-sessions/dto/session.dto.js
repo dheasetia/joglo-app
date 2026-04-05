@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateSessionDto = exports.CreateSessionDto = void 0;
+exports.CreateSessionNoteDto = exports.UpdateSessionDto = exports.CreateSessionDto = void 0;
 const class_validator_1 = require("class-validator");
 const client_1 = require("@prisma/client");
 class CreateSessionDto {
@@ -56,7 +56,7 @@ __decorate([
 ], CreateSessionDto.prototype, "endPage", void 0);
 __decorate([
     (0, class_validator_1.IsInt)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Number)
 ], CreateSessionDto.prototype, "score", void 0);
 __decorate([
@@ -66,6 +66,7 @@ __decorate([
 ], CreateSessionDto.prototype, "notes", void 0);
 __decorate([
     (0, class_validator_1.IsEnum)(client_1.Recommendation),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], CreateSessionDto.prototype, "recommendation", void 0);
 __decorate([
@@ -124,4 +125,31 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Boolean)
 ], UpdateSessionDto.prototype, "isApprovedForNextStep", void 0);
+class CreateSessionNoteDto {
+    noteType;
+    page;
+    line;
+    description;
+}
+exports.CreateSessionNoteDto = CreateSessionNoteDto;
+__decorate([
+    (0, class_validator_1.IsEnum)(client_1.SessionNoteType),
+    __metadata("design:type", String)
+], CreateSessionNoteDto.prototype, "noteType", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], CreateSessionNoteDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(15),
+    __metadata("design:type", Number)
+], CreateSessionNoteDto.prototype, "line", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateSessionNoteDto.prototype, "description", void 0);
 //# sourceMappingURL=session.dto.js.map

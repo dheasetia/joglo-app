@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { MemorizationSessionsService } from './memorization-sessions.service';
-import { CreateSessionDto, UpdateSessionDto } from './dto/session.dto';
+import { CreateSessionDto, CreateSessionNoteDto, UpdateSessionDto } from './dto/session.dto';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
@@ -15,6 +15,32 @@ export class MemorizationSessionsController {
     private readonly sessionsService: MemorizationSessionsService,
     private prismaService: PrismaService
   ) {}
+
+  private async getTeacherByUser(user: any) {
+    return this.prismaService.teacher.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    });
+  }
+
+  private async ensureSessionAccess(sessionId: string, user: any) {
+    const session = await this.sessionsService.findOne(sessionId);
+
+    if (user.role === UserRole.ADMIN) {
+      return session;
+    }
+
+    const teacher = await this.getTeacherByUser(user);
+    if (!teacher) {
+      throw new UnauthorizedException('User is not a teacher');
+    }
+
+    if (session.teacherId !== teacher.id) {
+      throw new UnauthorizedException('Anda tidak memiliki akses ke sesi ini');
+    }
+
+    return session;
+  }
 
   @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
   @Post()
@@ -76,20 +102,7 @@ export class MemorizationSessionsController {
           });
         }
 
-        return this.prismaService.memorizationSession.findMany({
-          where: {
-            teacherId: teacher.id,
-            studentId: studentId || undefined,
-          },
-          include: {
-            student: true,
-            teacher: true,
-            halaqah: true,
-          },
-          orderBy: {
-            sessionDate: 'desc',
-          },
-        });
+        return this.sessionsService.findByTeacher(teacher.id, studentId || undefined);
       }
     }
 
@@ -97,13 +110,22 @@ export class MemorizationSessionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@GetUser() user: any, @Param('id') id: string) {
+    await this.ensureSessionAccess(id, user);
     return this.sessionsService.findOne(id);
   }
 
   @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
+  @Post(':id/notes')
+  async createNote(@GetUser() user: any, @Param('id') id: string, @Body() dto: CreateSessionNoteDto) {
+    await this.ensureSessionAccess(id, user);
+    return this.sessionsService.createNote(id, dto);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSessionDto: UpdateSessionDto) {
+  async update(@GetUser() user: any, @Param('id') id: string, @Body() updateSessionDto: UpdateSessionDto) {
+    await this.ensureSessionAccess(id, user);
     return this.sessionsService.update(id, updateSessionDto);
   }
 

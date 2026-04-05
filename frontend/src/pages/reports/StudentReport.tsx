@@ -122,7 +122,7 @@ const StudentReport: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="bg-gray-50 p-3 rounded-lg text-center">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider">Sesi Terdaftar</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">Tasmi' Terdaftar</p>
                   <p className="text-xl font-bold text-gray-900">{student.sessions.length}</p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg text-center">
@@ -171,7 +171,7 @@ const StudentReport: React.FC = () => {
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar size={20} className="text-primary" />
-              <h3 className="font-bold text-gray-900">10 Sesi Terakhir</h3>
+              <h3 className="font-bold text-gray-900">10 Tasmi' Terakhir</h3>
             </div>
           </div>
           <div className="divide-y divide-gray-100">
@@ -200,7 +200,7 @@ const StudentReport: React.FC = () => {
                 </div>
               ))
             ) : (
-              <div className="p-8 text-center text-gray-500 text-sm">Belum ada catatan sesi</div>
+              <div className="p-8 text-center text-gray-500 text-sm">Belum ada catatan Tasmi'</div>
             )}
           </div>
         </div>

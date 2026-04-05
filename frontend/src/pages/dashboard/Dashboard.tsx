@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
               color="bg-green-500" 
             />
             <StatCard 
-              title="Sesi (7 Hari Terakhir)" 
+              title="Tasmi' (7 Hari Terakhir)" 
               value={stats?.recentSessionsCount || 0} 
               icon={TrendingUp} 
               color="bg-purple-500" 
@@ -161,7 +161,7 @@ const Dashboard: React.FC = () => {
               color="bg-purple-500" 
             />
             <StatCard 
-              title="Setoran Hari Ini" 
+              title="Tasmi' Hari Ini" 
               value={stats?.sessionsToday || 0} 
               icon={Clock} 
               color="bg-accent text-primary" 

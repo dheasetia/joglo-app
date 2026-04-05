@@ -1,4 +1,4 @@
-import { SessionType, Recommendation } from '@prisma/client';
+import { SessionType, Recommendation, SessionNoteType } from '@prisma/client';
 export declare class CreateSessionDto {
     sessionDate: string;
     sessionType: SessionType;
@@ -6,9 +6,9 @@ export declare class CreateSessionDto {
     halaqahId: string;
     startPage?: number;
     endPage?: number;
-    score: number;
+    score?: number;
     notes?: string;
-    recommendation: Recommendation;
+    recommendation?: Recommendation;
     isApprovedForNextStep?: boolean;
 }
 export declare class UpdateSessionDto {
@@ -20,4 +20,10 @@ export declare class UpdateSessionDto {
     notes?: string;
     recommendation?: Recommendation;
     isApprovedForNextStep?: boolean;
+}
+export declare class CreateSessionNoteDto {
+    noteType: SessionNoteType;
+    page: number;
+    line: number;
+    description: string;
 }

@@ -1,124 +1,105 @@
 import { MemorizationSessionsService } from './memorization-sessions.service';
-import { CreateSessionDto, UpdateSessionDto } from './dto/session.dto';
+import { CreateSessionDto, CreateSessionNoteDto, UpdateSessionDto } from './dto/session.dto';
 import { PrismaService } from '../prisma/prisma.service';
 export declare class MemorizationSessionsController {
     private readonly sessionsService;
     private prismaService;
     constructor(sessionsService: MemorizationSessionsService, prismaService: PrismaService);
-    create(user: any, createSessionDto: CreateSessionDto): Promise<{
-        teacher: {
-            id: string;
-            userId: string;
-            fullName: string;
-            phone: string | null;
-            notes: string | null;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-        };
-        student: {
-            id: string;
-            fullName: string;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
-            halaqahId: string;
-            nis: string | null;
-            photoUrl: string | null;
-            gender: import("@prisma/client").$Enums.Gender;
-            level: string | null;
-            className: string | null;
-            currentJuz: number;
-            currentPage: number | null;
-            lastMemorizedPage: number | null;
-            totalMemorizedPages: number;
-        };
-    } & {
-        id: string;
-        notes: string | null;
-        createdAt: Date;
-        updatedAt: Date;
-        teacherId: string;
-        sessionDate: Date;
-        sessionType: import("@prisma/client").$Enums.SessionType;
-        startPage: number | null;
-        endPage: number | null;
-        totalPages: number | null;
-        score: number;
-        recommendation: import("@prisma/client").$Enums.Recommendation;
-        isApprovedForNextStep: boolean | null;
-        studentId: string;
-        halaqahId: string;
-    }>;
+    private getTeacherByUser;
+    private ensureSessionAccess;
+    create(user: any, createSessionDto: CreateSessionDto): Promise<any>;
     findAll(user: any, studentId?: string, date?: string): Promise<({
         teacher: {
             id: string;
-            userId: string;
-            fullName: string;
-            phone: string | null;
-            notes: string | null;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
+            fullName: string;
+            phone: string | null;
+            notes: string | null;
+            userId: string;
         };
         halaqah: {
+            name: string;
             id: string;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
             description: string | null;
             teacherId: string;
         };
+        student: {
+            id: string;
+            photoUrl: string | null;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
+            fullName: string;
+            nis: string | null;
+            gender: import("@prisma/client").$Enums.Gender;
+            level: string | null;
+            className: string | null;
+            halaqahId: string;
+            currentJuz: number;
+            currentPage: number | null;
+            lastMemorizedPage: number | null;
+            totalMemorizedPages: number;
+        };
     } & {
         id: string;
-        notes: string | null;
         createdAt: Date;
         updatedAt: Date;
+        notes: string | null;
         teacherId: string;
+        halaqahId: string;
         sessionDate: Date;
         sessionType: import("@prisma/client").$Enums.SessionType;
+        studentId: string;
         startPage: number | null;
         endPage: number | null;
-        totalPages: number | null;
         score: number;
         recommendation: import("@prisma/client").$Enums.Recommendation;
         isApprovedForNextStep: boolean | null;
-        studentId: string;
-        halaqahId: string;
+        totalPages: number | null;
+    } & {
+        noteSummary: {
+            KESALAHAN: number;
+            TEGURAN: number;
+            PERHATIAN: number;
+        };
     })[]>;
-    findOne(id: string): Promise<{
+    findOne(user: any, id: string): Promise<{
         teacher: {
             id: string;
-            userId: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
             fullName: string;
             phone: string | null;
             notes: string | null;
-            isActive: boolean;
-            createdAt: Date;
-            updatedAt: Date;
+            userId: string;
         };
         halaqah: {
+            name: string;
             id: string;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
             description: string | null;
             teacherId: string;
         };
         student: {
             id: string;
-            fullName: string;
+            photoUrl: string | null;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            halaqahId: string;
+            fullName: string;
             nis: string | null;
-            photoUrl: string | null;
             gender: import("@prisma/client").$Enums.Gender;
             level: string | null;
             className: string | null;
+            halaqahId: string;
             currentJuz: number;
             currentPage: number | null;
             lastMemorizedPage: number | null;
@@ -126,44 +107,59 @@ export declare class MemorizationSessionsController {
         };
     } & {
         id: string;
-        notes: string | null;
         createdAt: Date;
         updatedAt: Date;
+        notes: string | null;
         teacherId: string;
+        halaqahId: string;
         sessionDate: Date;
         sessionType: import("@prisma/client").$Enums.SessionType;
+        studentId: string;
         startPage: number | null;
         endPage: number | null;
-        totalPages: number | null;
         score: number;
         recommendation: import("@prisma/client").$Enums.Recommendation;
         isApprovedForNextStep: boolean | null;
-        studentId: string;
-        halaqahId: string;
+        totalPages: number | null;
+    } & {
+        noteSummary: {
+            KESALAHAN: number;
+            TEGURAN: number;
+            PERHATIAN: number;
+        };
     }>;
-    update(id: string, updateSessionDto: UpdateSessionDto): Promise<{
+    createNote(user: any, id: string, dto: CreateSessionNoteDto): Promise<{
         teacher: {
             id: string;
-            userId: string;
+            isActive: boolean;
+            createdAt: Date;
+            updatedAt: Date;
             fullName: string;
             phone: string | null;
             notes: string | null;
+            userId: string;
+        };
+        halaqah: {
+            name: string;
+            id: string;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
+            description: string | null;
+            teacherId: string;
         };
         student: {
             id: string;
-            fullName: string;
+            photoUrl: string | null;
             isActive: boolean;
             createdAt: Date;
             updatedAt: Date;
-            halaqahId: string;
+            fullName: string;
             nis: string | null;
-            photoUrl: string | null;
             gender: import("@prisma/client").$Enums.Gender;
             level: string | null;
             className: string | null;
+            halaqahId: string;
             currentJuz: number;
             currentPage: number | null;
             lastMemorizedPage: number | null;
@@ -171,36 +167,43 @@ export declare class MemorizationSessionsController {
         };
     } & {
         id: string;
-        notes: string | null;
         createdAt: Date;
         updatedAt: Date;
+        notes: string | null;
         teacherId: string;
+        halaqahId: string;
         sessionDate: Date;
         sessionType: import("@prisma/client").$Enums.SessionType;
+        studentId: string;
         startPage: number | null;
         endPage: number | null;
-        totalPages: number | null;
         score: number;
         recommendation: import("@prisma/client").$Enums.Recommendation;
         isApprovedForNextStep: boolean | null;
-        studentId: string;
-        halaqahId: string;
+        totalPages: number | null;
+    } & {
+        noteSummary: {
+            KESALAHAN: number;
+            TEGURAN: number;
+            PERHATIAN: number;
+        };
     }>;
+    update(user: any, id: string, updateSessionDto: UpdateSessionDto): Promise<any>;
     remove(user: any, id: string): Promise<{
         id: string;
-        notes: string | null;
         createdAt: Date;
         updatedAt: Date;
+        notes: string | null;
         teacherId: string;
+        halaqahId: string;
         sessionDate: Date;
         sessionType: import("@prisma/client").$Enums.SessionType;
+        studentId: string;
         startPage: number | null;
         endPage: number | null;
-        totalPages: number | null;
         score: number;
         recommendation: import("@prisma/client").$Enums.Recommendation;
         isApprovedForNextStep: boolean | null;
-        studentId: string;
-        halaqahId: string;
+        totalPages: number | null;
     }>;
 }

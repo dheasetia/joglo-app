@@ -66,6 +66,29 @@ export enum Recommendation {
   REPEAT = 'REPEAT',
 }
 
+export enum SessionNoteType {
+  KESALAHAN = 'KESALAHAN',
+  TEGURAN = 'TEGURAN',
+  PERHATIAN = 'PERHATIAN',
+}
+
+export interface SessionNote {
+  id: string;
+  sessionId: string;
+  noteType: SessionNoteType;
+  page: number;
+  line: number;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SessionNoteSummary {
+  KESALAHAN: number;
+  TEGURAN: number;
+  PERHATIAN: number;
+}
+
 export interface MemorizationSession {
   id: string;
   sessionDate: string;
@@ -79,6 +102,8 @@ export interface MemorizationSession {
   score: number;
   notes?: string;
   recommendation: Recommendation;
+  noteItems?: SessionNote[];
+  noteSummary?: SessionNoteSummary;
   student?: Student;
   teacher?: Teacher;
   halaqah?: Halaqah;

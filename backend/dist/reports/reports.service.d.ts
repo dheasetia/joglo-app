@@ -3,6 +3,8 @@ export declare class ReportsService {
     private prisma;
     constructor(prisma: PrismaService);
     getStudentProgress(studentId: string): Promise<{
+        totalMemorizedPages: number;
+        lastMemorizedPage: number | null;
         halaqah: {
             teacher: {
                 id: string;
@@ -61,7 +63,6 @@ export declare class ReportsService {
             startJuz: number | null;
             endJuz: number | null;
         }[];
-    } & {
         id: string;
         photoUrl: string | null;
         isActive: boolean;
@@ -75,8 +76,6 @@ export declare class ReportsService {
         halaqahId: string;
         currentJuz: number;
         currentPage: number | null;
-        lastMemorizedPage: number | null;
-        totalMemorizedPages: number;
     }>;
     getHalaqahReport(halaqahId: string): Promise<{
         teacher: {

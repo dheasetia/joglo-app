@@ -18,6 +18,25 @@ let MemorizationSessionsService = class MemorizationSessionsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    isSessionNoteTableMissing(error) {
+        const err = error;
+        const message = err?.message ?? '';
+        return err?.code === 'P2021' && (message.includes('SessionNote') ||
+            message.includes('session_notes') ||
+            message.includes('noteItems'));
+    }
+    isSessionNoteSchemaNotReady(error) {
+        const err = error;
+        const message = `${err?.message ?? ''} ${err?.meta?.message ?? ''}`;
+        if (this.isSessionNoteTableMissing(error)) {
+            return true;
+        }
+        return ((err?.code === 'P2022' && (message.includes('SessionNote') ||
+            message.includes('noteType') ||
+            message.includes('sessionId'))) ||
+            (err?.code === 'P2010' && (message.includes('SessionNoteType') ||
+                message.includes('does not exist'))));
+    }
     buildDateRange(date) {
         const parsedDate = new Date(date);
         if (Number.isNaN(parsedDate.getTime())) {
@@ -28,6 +47,71 @@ let MemorizationSessionsService = class MemorizationSessionsService {
         const end = new Date(parsedDate);
         end.setHours(23, 59, 59, 999);
         return { start, end };
+    }
+    withDetailsInclude() {
+        return {
+            student: true,
+            teacher: true,
+            halaqah: true,
+            noteItems: {
+                orderBy: { createdAt: 'desc' },
+            },
+        };
+    }
+    withBasicInclude() {
+        return {
+            student: true,
+            teacher: true,
+            halaqah: true,
+        };
+    }
+    async findManyWithSafeInclude(args) {
+        try {
+            return await this.prisma.memorizationSession.findMany({
+                ...args,
+                include: this.withDetailsInclude(),
+            });
+        }
+        catch (error) {
+            if (!this.isSessionNoteTableMissing(error)) {
+                throw error;
+            }
+            return this.prisma.memorizationSession.findMany({
+                ...args,
+                include: this.withBasicInclude(),
+            });
+        }
+    }
+    async findUniqueWithSafeInclude(id) {
+        try {
+            return await this.prisma.memorizationSession.findUnique({
+                where: { id },
+                include: this.withDetailsInclude(),
+            });
+        }
+        catch (error) {
+            if (!this.isSessionNoteTableMissing(error)) {
+                throw error;
+            }
+            return this.prisma.memorizationSession.findUnique({
+                where: { id },
+                include: this.withBasicInclude(),
+            });
+        }
+    }
+    withNoteSummary(session) {
+        const summary = {
+            KESALAHAN: 0,
+            TEGURAN: 0,
+            PERHATIAN: 0,
+        };
+        session.noteItems?.forEach((item) => {
+            summary[item.noteType] += 1;
+        });
+        return {
+            ...session,
+            noteSummary: summary,
+        };
     }
     async create(teacherId, dto) {
         if (dto.startPage && dto.endPage && dto.startPage > dto.endPage) {
@@ -43,38 +127,52 @@ let MemorizationSessionsService = class MemorizationSessionsService {
         if (dto.startPage !== undefined && dto.endPage !== undefined) {
             totalPages = dto.endPage - dto.startPage + 1;
         }
-        const session = await this.prisma.memorizationSession.create({
-            data: {
-                ...dto,
-                teacherId,
-                totalPages,
-                sessionDate: new Date(dto.sessionDate),
-            },
-            include: {
-                student: true,
-                teacher: true,
-            },
-        });
-        if (dto.sessionType === client_1.SessionType.ZIYADAH && dto.recommendation === 'CONTINUE') {
+        let session;
+        try {
+            session = await this.prisma.memorizationSession.create({
+                data: {
+                    ...dto,
+                    teacherId,
+                    totalPages,
+                    score: dto.score ?? 80,
+                    recommendation: dto.recommendation ?? client_1.Recommendation.CONTINUE,
+                    sessionDate: new Date(dto.sessionDate),
+                },
+                include: this.withDetailsInclude(),
+            });
+        }
+        catch (error) {
+            if (!this.isSessionNoteTableMissing(error)) {
+                throw error;
+            }
+            session = await this.prisma.memorizationSession.create({
+                data: {
+                    ...dto,
+                    teacherId,
+                    totalPages,
+                    score: dto.score ?? 80,
+                    recommendation: dto.recommendation ?? client_1.Recommendation.CONTINUE,
+                    sessionDate: new Date(dto.sessionDate),
+                },
+                include: this.withBasicInclude(),
+            });
+        }
+        const recommendation = dto.recommendation ?? client_1.Recommendation.CONTINUE;
+        if (dto.sessionType === client_1.SessionType.ZIYADAH && recommendation === client_1.Recommendation.CONTINUE) {
             await this.updateStudentProgress(dto.studentId);
         }
-        return session;
+        return this.withNoteSummary(session);
     }
     async findAll() {
-        return this.prisma.memorizationSession.findMany({
-            include: {
-                student: true,
-                teacher: true,
-                halaqah: true,
-            },
+        return this.findManyWithSafeInclude({
             orderBy: {
                 sessionDate: 'desc',
             },
-        });
+        }).then((items) => items.map((item) => this.withNoteSummary(item)));
     }
     async findByDate(date, options) {
         const { start, end } = this.buildDateRange(date);
-        return this.prisma.memorizationSession.findMany({
+        return this.findManyWithSafeInclude({
             where: {
                 studentId: options?.studentId,
                 teacherId: options?.teacherId,
@@ -82,11 +180,6 @@ let MemorizationSessionsService = class MemorizationSessionsService {
                     gte: start,
                     lte: end,
                 },
-            },
-            include: {
-                student: true,
-                teacher: true,
-                halaqah: true,
             },
             orderBy: [
                 {
@@ -96,36 +189,39 @@ let MemorizationSessionsService = class MemorizationSessionsService {
                     createdAt: 'desc',
                 },
             ],
-        });
+        }).then((items) => items.map((item) => this.withNoteSummary(item)));
     }
     async findOne(id) {
-        const session = await this.prisma.memorizationSession.findUnique({
-            where: { id },
-            include: {
-                student: true,
-                teacher: true,
-                halaqah: true,
-            },
-        });
+        const session = await this.findUniqueWithSafeInclude(id);
         if (!session) {
             throw new common_1.NotFoundException(`Session with ID ${id} not found`);
         }
-        return session;
+        return this.withNoteSummary(session);
     }
     async findByStudent(studentId) {
-        return this.prisma.memorizationSession.findMany({
+        return this.findManyWithSafeInclude({
             where: { studentId },
-            include: {
-                teacher: true,
-                halaqah: true,
+            orderBy: {
+                sessionDate: 'desc',
+            },
+        }).then((items) => items.map((item) => this.withNoteSummary(item)));
+    }
+    async findByTeacher(teacherId, studentId) {
+        return this.findManyWithSafeInclude({
+            where: {
+                teacherId,
+                studentId: studentId || undefined,
             },
             orderBy: {
                 sessionDate: 'desc',
             },
-        });
+        }).then((items) => items.map((item) => this.withNoteSummary(item)));
     }
     async update(id, dto) {
-        const oldSession = await this.findOne(id);
+        const oldSession = await this.findUniqueWithSafeInclude(id);
+        if (!oldSession) {
+            throw new common_1.NotFoundException(`Session with ID ${id} not found`);
+        }
         if (dto.startPage !== undefined || dto.endPage !== undefined) {
             const startPage = dto.startPage ?? oldSession.startPage;
             const endPage = dto.endPage ?? oldSession.endPage;
@@ -141,18 +237,32 @@ let MemorizationSessionsService = class MemorizationSessionsService {
                 totalPages = end - start + 1;
             }
         }
-        const updatedSession = await this.prisma.memorizationSession.update({
-            where: { id },
-            data: {
-                ...dto,
-                totalPages,
-                sessionDate: dto.sessionDate ? new Date(dto.sessionDate) : undefined,
-            },
-            include: {
-                student: true,
-                teacher: true,
-            },
-        });
+        let updatedSession;
+        try {
+            updatedSession = await this.prisma.memorizationSession.update({
+                where: { id },
+                data: {
+                    ...dto,
+                    totalPages,
+                    sessionDate: dto.sessionDate ? new Date(dto.sessionDate) : undefined,
+                },
+                include: this.withDetailsInclude(),
+            });
+        }
+        catch (error) {
+            if (!this.isSessionNoteTableMissing(error)) {
+                throw error;
+            }
+            updatedSession = await this.prisma.memorizationSession.update({
+                where: { id },
+                data: {
+                    ...dto,
+                    totalPages,
+                    sessionDate: dto.sessionDate ? new Date(dto.sessionDate) : undefined,
+                },
+                include: this.withBasicInclude(),
+            });
+        }
         const typeChanged = dto.sessionType && dto.sessionType !== oldSession.sessionType;
         const recommendationChanged = dto.recommendation && dto.recommendation !== oldSession.recommendation;
         const pagesChanged = dto.startPage !== undefined || dto.endPage !== undefined;
@@ -162,7 +272,44 @@ let MemorizationSessionsService = class MemorizationSessionsService {
             oldSession.sessionType === client_1.SessionType.ZIYADAH) {
             await this.updateStudentProgress(updatedSession.studentId);
         }
-        return updatedSession;
+        return this.withNoteSummary(updatedSession);
+    }
+    async createNote(sessionId, dto) {
+        const session = await this.prisma.memorizationSession.findUnique({
+            where: { id: sessionId },
+            select: {
+                id: true,
+                startPage: true,
+                endPage: true,
+            },
+        });
+        if (!session) {
+            throw new common_1.NotFoundException(`Session with ID ${sessionId} not found`);
+        }
+        if (session.startPage && dto.page < session.startPage) {
+            throw new common_1.BadRequestException('Halaman catatan tidak boleh kurang dari halaman mulai sesi.');
+        }
+        if (session.endPage && dto.page > session.endPage) {
+            throw new common_1.BadRequestException('Halaman catatan tidak boleh melebihi halaman akhir sesi.');
+        }
+        try {
+            await this.prisma.sessionNote.create({
+                data: {
+                    sessionId,
+                    noteType: dto.noteType,
+                    page: dto.page,
+                    line: dto.line,
+                    description: dto.description,
+                },
+            });
+        }
+        catch (error) {
+            if (this.isSessionNoteSchemaNotReady(error)) {
+                throw new common_1.BadRequestException('Fitur catatan sesi belum siap di database. Jalankan migrasi Prisma terbaru lalu coba simpan kembali.');
+            }
+            throw error;
+        }
+        return this.findOne(sessionId);
     }
     async remove(id, requesterRole, teacherId) {
         const session = await this.findOne(id);

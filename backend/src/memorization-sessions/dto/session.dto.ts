@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, IsDateString, IsBoolean } from 'class-validator';
-import { SessionType, Recommendation } from '@prisma/client';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, IsDateString, IsBoolean, Min, Max } from 'class-validator';
+import { SessionType, Recommendation, SessionNoteType } from '@prisma/client';
 
 export class CreateSessionDto {
   @IsDateString()
@@ -26,15 +26,16 @@ export class CreateSessionDto {
   endPage?: number;
 
   @IsInt()
-  @IsNotEmpty()
-  score: number;
+  @IsOptional()
+  score?: number;
 
   @IsString()
   @IsOptional()
   notes?: string;
 
   @IsEnum(Recommendation)
-  recommendation: Recommendation;
+  @IsOptional()
+  recommendation?: Recommendation;
 
   @IsBoolean()
   @IsOptional()
@@ -73,4 +74,22 @@ export class UpdateSessionDto {
   @IsBoolean()
   @IsOptional()
   isApprovedForNextStep?: boolean;
+}
+
+export class CreateSessionNoteDto {
+  @IsEnum(SessionNoteType)
+  noteType: SessionNoteType;
+
+  @IsInt()
+  @Min(1)
+  page: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(15)
+  line: number;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 }

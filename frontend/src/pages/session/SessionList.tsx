@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
 import { MemorizationSession, Student, SessionType, Recommendation } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -12,7 +12,8 @@ import {
   XCircle,
   Filter,
   Edit2,
-  Trash2
+  Trash2,
+  Eye
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -26,6 +27,7 @@ const SessionList: React.FC = () => {
 
   const { user } = useAuth();
   const toast = useToast();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const studentIdParam = searchParams.get('student');
 
@@ -55,8 +57,6 @@ const SessionList: React.FC = () => {
     halaqahId: '',
     startPage: undefined as number | undefined,
     endPage: undefined as number | undefined,
-    score: 80,
-    notes: '',
     recommendation: Recommendation.CONTINUE
   });
 
@@ -69,16 +69,40 @@ const SessionList: React.FC = () => {
     return format(date, 'yyyy-MM-dd');
   }, []);
 
-  const fetchSessionsByDate = useCallback(async (date: string) => {
+  const getSessionDateKey = useCallback((sessionDateValue: string | Date) => {
+    return format(new Date(sessionDateValue), 'yyyy-MM-dd');
+  }, []);
+
+  const fetchSessionsBase = useCallback(async () => {
     const response = await api.get('/memorization-sessions', {
       params: {
         studentId: selectedStudent || undefined,
-        date,
       },
     });
 
     return response.data as MemorizationSession[];
   }, [selectedStudent]);
+
+  const fetchSessionsByDate = useCallback(async (date: string) => {
+    try {
+      const response = await api.get('/memorization-sessions', {
+        params: {
+          studentId: selectedStudent || undefined,
+          date,
+        },
+      });
+
+      const sessionsByDate = response.data as MemorizationSession[];
+      if (sessionsByDate.length > 0) {
+        return sessionsByDate;
+      }
+    } catch (error) {
+      console.warn("Fetch Tasmi' dengan filter tanggal gagal, gunakan fallback tanpa filter date.", error);
+    }
+
+    const allSessions = await fetchSessionsBase();
+    return allSessions.filter((session) => getSessionDateKey(session.sessionDate) === date);
+  }, [fetchSessionsBase, getSessionDateKey, selectedStudent]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -219,8 +243,6 @@ const SessionList: React.FC = () => {
       halaqahId: '',
       startPage: undefined,
       endPage: undefined,
-      score: 80,
-      notes: '',
       recommendation: Recommendation.CONTINUE
     });
     setIsModalOpen(true);
@@ -236,8 +258,6 @@ const SessionList: React.FC = () => {
       halaqahId: session.halaqahId,
       startPage: session.startPage || undefined,
       endPage: session.endPage || undefined,
-      score: session.score,
-      notes: session.notes || '',
       recommendation: session.recommendation
     });
     setIsModalOpen(true);
@@ -272,17 +292,19 @@ const SessionList: React.FC = () => {
         halaqahId: resolvedHalaqahId,
         startPage: formData.startPage ? Number(formData.startPage) : undefined,
         endPage: formData.endPage ? Number(formData.endPage) : undefined,
-        score: Number(formData.score)
       };
 
       if (isEditing) {
         await api.patch(`/memorization-sessions/${selectedSession.id}`, data);
+        setIsModalOpen(false);
+        fetchData();
+        toast.success("Catatan Tasmi' berhasil diperbarui.");
       } else {
-        await api.post('/memorization-sessions', data);
+        const response = await api.post('/memorization-sessions', data);
+        setIsModalOpen(false);
+        toast.success("Tasmi' berhasil disimpan.");
+        navigate(`/session/${response.data.id}`);
       }
-      setIsModalOpen(false);
-      fetchData();
-      toast.success(isEditing ? 'Catatan setoran berhasil diperbarui.' : 'Catatan setoran berhasil ditambahkan.');
     } catch (error) {
       console.error('Operation failed', error);
       const apiMessage = (error as any)?.response?.data?.message;
@@ -300,7 +322,7 @@ const SessionList: React.FC = () => {
       await api.delete(`/memorization-sessions/${selectedSession.id}`);
       setIsDeleteModalOpen(false);
       fetchData();
-      toast.success('Catatan setoran berhasil dihapus.');
+      toast.success("Catatan Tasmi' berhasil dihapus.");
     } catch (error) {
       console.error('Delete failed', error);
       alert('Gagal menghapus catatan.');
@@ -331,22 +353,22 @@ const SessionList: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Sesi Hafalan</h1>
-          <p className="text-gray-500 text-sm mt-1">Riwayat setoran hafalan santri harian.</p>
+          <h1 className="text-2xl font-bold text-gray-900">Tasmi'</h1>
+          <p className="text-gray-500 text-sm mt-1">Riwayat Tasmi' hafalan santri harian.</p>
         </div>
         <button 
           onClick={handleOpenCreateModal}
           className="btn btn-primary gap-2"
         >
           <Plus size={18} />
-          Catat Setoran
+          Tasmi' Baru
         </button>
       </div>
 
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={isEditing ? 'Edit Catatan Setoran' : 'Catat Setoran Baru'}
+        title={isEditing ? "Edit Catatan Tasmi'" : "Catat Tasmi' Baru"}
       >
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
@@ -361,7 +383,7 @@ const SessionList: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipe Sesi</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tipe Tasmi'</label>
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
                 value={formData.sessionType}
@@ -436,43 +458,6 @@ const SessionList: React.FC = () => {
             Otomatis Mushaf Madinah: <span className="font-semibold">{formPageRangeText}</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nilai (0-100)</label>
-              <input
-                type="number"
-                required
-                min="0"
-                max="100"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-                value={formData.score}
-                onChange={(e) => setFormData({ ...formData, score: Number(e.target.value) })}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rekomendasi</label>
-              <select
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-                value={formData.recommendation}
-                onChange={(e) => setFormData({ ...formData, recommendation: e.target.value as any })}
-              >
-                <option value={Recommendation.CONTINUE}>Lanjut</option>
-                <option value={Recommendation.REPEAT}>Ulang</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Catatan</label>
-            <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary text-sm"
-              rows={2}
-              placeholder="Catatan perkembangan..."
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            />
-          </div>
-
           <div className="pt-2 flex gap-3">
             <button
               type="button"
@@ -486,7 +471,7 @@ const SessionList: React.FC = () => {
               disabled={isSubmitting}
               className="flex-1 btn btn-primary text-sm"
             >
-              {isSubmitting ? 'Menyimpan...' : 'Simpan Catatan'}
+              {isSubmitting ? 'Menyimpan...' : 'Simpan'}
             </button>
           </div>
         </form>
@@ -499,7 +484,7 @@ const SessionList: React.FC = () => {
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            Apakah Anda yakin ingin menghapus catatan setoran santri <span className="font-bold">{selectedSession?.student?.fullName}</span> pada tanggal {selectedSession && format(new Date(selectedSession.sessionDate), 'dd/MM/yyyy')}? 
+            Apakah Anda yakin ingin menghapus catatan Tasmi' santri <span className="font-bold">{selectedSession?.student?.fullName}</span> pada tanggal {selectedSession && format(new Date(selectedSession.sessionDate), 'dd/MM/yyyy')}? 
             Tindakan ini tidak dapat dibatalkan.
           </p>
           <div className="flex gap-3">
@@ -540,7 +525,7 @@ const SessionList: React.FC = () => {
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
           >
-            <option value="">Semua Tipe Sesi</option>
+            <option value="">Semua Tipe Tasmi'</option>
             <option value={SessionType.ZIYADAH}>Ziyadah</option>
             <option value={SessionType.MURAJAAH_SHUGHRA}>Murajaah Shughra</option>
             <option value={SessionType.MURAJAAH_KUBRO}>Murajaah Kubro</option>
@@ -628,8 +613,16 @@ const SessionList: React.FC = () => {
                     </div>
                   </div>
 
-                  {(user?.role === 'ADMIN' || user?.id === session.teacher?.userId) && (
-                    <div className="flex flex-col gap-1 border-l pl-4 border-gray-100">
+                  <div className="flex flex-col gap-1 border-l pl-4 border-gray-100">
+                    <button
+                      onClick={() => navigate(`/session/${session.id}`)}
+                      className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-md transition-colors"
+                      title="Detail"
+                    >
+                      <Eye size={16} />
+                    </button>
+                    {(user?.role === 'ADMIN' || user?.id === session.teacher?.userId) && (
+                      <>
                       <button 
                         onClick={() => handleOpenEditModal(session)}
                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
@@ -644,8 +637,9 @@ const SessionList: React.FC = () => {
                       >
                         <Trash2 size={16} />
                       </button>
-                    </div>
-                  )}
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -688,7 +682,7 @@ const SessionList: React.FC = () => {
 
           {isInfiniteEnabled && !hasMore && sessions.length > 0 && (
             <div className="text-center text-xs text-gray-400 py-2">
-              Tidak ada data sesi yang lebih lama.
+              Tidak ada data Tasmi' yang lebih lama.
             </div>
           )}
         </div>
@@ -697,13 +691,13 @@ const SessionList: React.FC = () => {
           <div className="bg-gray-100 p-4 rounded-full mb-4">
             <BookOpen size={32} className="text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900">Tidak ada riwayat setoran</h3>
+          <h3 className="text-lg font-medium text-gray-900">Tidak ada riwayat Tasmi'</h3>
           <p className="text-gray-500 max-w-xs mt-2">
-            Belum ada catatan setoran hafalan untuk kriteria yang dipilih.
+            Belum ada catatan Tasmi' hafalan untuk kriteria yang dipilih.
           </p>
           <button onClick={handleOpenCreateModal} className="mt-6 btn btn-primary gap-2">
             <Plus size={18} />
-            Catat Setoran Pertama
+            Catat Tasmi' Pertama
           </button>
         </div>
       )}

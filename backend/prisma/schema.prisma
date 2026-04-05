@@ -103,6 +103,7 @@ model MemorizationSession {
   student               Student        @relation(fields: [studentId], references: [id], onDelete: Restrict)
   teacher               Teacher        @relation(fields: [teacherId], references: [id], onDelete: Restrict)
   halaqah               Halaqah        @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
+  noteItems             SessionNote[]
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
 
@@ -111,6 +112,21 @@ model MemorizationSession {
   @@index([halaqahId])
   @@index([sessionDate])
   @@index([sessionType])
+}
+
+model SessionNote {
+  id          String              @id @default(cuid())
+  sessionId   String
+  noteType    SessionNoteType
+  page        Int
+  line        Int
+  description String
+  session     MemorizationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([sessionId])
+  @@index([noteType])
 }
 
 model MemorizationExam {
@@ -188,6 +204,12 @@ enum SessionType {
   ZIYADAH
   MURAJAAH_SHUGHRA
   MURAJAAH_KUBRO
+}
+
+enum SessionNoteType {
+  KESALAHAN
+  TEGURAN
+  PERHATIAN
 }
 
 enum ExamType {
