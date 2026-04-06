@@ -150,6 +150,7 @@ model MemorizationExam {
   student        Student          @relation(fields: [studentId], references: [id], onDelete: Restrict)
   teacher        Teacher          @relation(fields: [teacherId], references: [id], onDelete: Restrict)
   halaqah        Halaqah          @relation(fields: [halaqahId], references: [id], onDelete: Restrict)
+  noteItems      ExamNote[]
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
@@ -158,6 +159,21 @@ model MemorizationExam {
   @@index([halaqahId])
   @@index([examDate])
   @@index([examType])
+}
+
+model ExamNote {
+  id          String           @id @default(cuid())
+  examId      String
+  noteType    SessionNoteType
+  page        Int
+  line        Int
+  description String
+  exam        MemorizationExam @relation(fields: [examId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([examId])
+  @@index([noteType])
 }
 
 model FileAsset {

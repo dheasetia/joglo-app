@@ -48,17 +48,28 @@ let MemorizationExamsController = class MemorizationExamsController {
                 where: { userId: user.id }
             });
             if (teacher) {
-                return this.prismaService.memorizationExam.findMany({
+                const exams = await this.prismaService.memorizationExam.findMany({
                     where: { teacherId: teacher.id },
                     include: {
                         student: true,
                         teacher: true,
                         halaqah: true,
+                        noteItems: {
+                            orderBy: { createdAt: 'asc' },
+                        },
                     },
                     orderBy: {
                         examDate: 'desc',
                     },
                 });
+                return exams.map((exam) => ({
+                    ...exam,
+                    noteSummary: {
+                        KESALAHAN: exam.noteItems.filter((n) => n.noteType === 'KESALAHAN').length,
+                        TEGURAN: exam.noteItems.filter((n) => n.noteType === 'TEGURAN').length,
+                        PERHATIAN: exam.noteItems.filter((n) => n.noteType === 'PERHATIAN').length,
+                    },
+                }));
             }
         }
         return this.examsService.findAll();
@@ -68,6 +79,9 @@ let MemorizationExamsController = class MemorizationExamsController {
     }
     update(id, updateExamDto) {
         return this.examsService.update(id, updateExamDto);
+    }
+    createNote(user, id, dto) {
+        return this.examsService.createNote(user, id, dto);
     }
     remove(id) {
         return this.examsService.remove(id);
@@ -107,6 +121,16 @@ __decorate([
     __metadata("design:paramtypes", [String, exam_dto_1.UpdateExamDto]),
     __metadata("design:returntype", void 0)
 ], MemorizationExamsController.prototype, "update", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
+    (0, common_1.Post)(':id/notes'),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, exam_dto_1.CreateExamNoteDto]),
+    __metadata("design:returntype", void 0)
+], MemorizationExamsController.prototype, "createNote", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, common_1.Delete)(':id'),

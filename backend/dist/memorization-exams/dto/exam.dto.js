@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UpdateExamDto = exports.CreateExamDto = void 0;
+exports.CreateExamNoteDto = exports.UpdateExamDto = exports.CreateExamDto = void 0;
 const class_validator_1 = require("class-validator");
 const client_1 = require("@prisma/client");
 class CreateExamDto {
@@ -162,4 +162,31 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UpdateExamDto.prototype, "resultStatus", void 0);
+class CreateExamNoteDto {
+    noteType;
+    page;
+    line;
+    description;
+}
+exports.CreateExamNoteDto = CreateExamNoteDto;
+__decorate([
+    (0, class_validator_1.IsEnum)(client_1.SessionNoteType),
+    __metadata("design:type", String)
+], CreateExamNoteDto.prototype, "noteType", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], CreateExamNoteDto.prototype, "page", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(15),
+    __metadata("design:type", Number)
+], CreateExamNoteDto.prototype, "line", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateExamNoteDto.prototype, "description", void 0);
 //# sourceMappingURL=exam.dto.js.map

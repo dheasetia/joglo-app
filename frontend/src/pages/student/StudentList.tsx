@@ -13,7 +13,8 @@ import {
   Filter, 
   Edit, 
   Trash2,
-  BookOpen
+  BookOpen,
+  Eye
 } from 'lucide-react';
 
 const StudentList: React.FC = () => {
@@ -545,6 +546,13 @@ const StudentList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex justify-end gap-2">
+                           <Link 
+                            to={`/student/${student.id}`}
+                            className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                            title="Detail Santri"
+                           >
+                             <Eye size={18} />
+                           </Link>
                            <Link 
                             to={`/session?student=${student.id}`}
                             className="p-1.5 text-primary hover:bg-primary/10 rounded-md transition-colors"

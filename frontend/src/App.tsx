@@ -6,6 +6,7 @@ import Login from './pages/auth/Login';
 import Dashboard from './pages/dashboard/Dashboard';
 import HalaqahList from './pages/halaqah/HalaqahList';
 import StudentList from './pages/student/StudentList';
+import StudentDetail from './pages/student/StudentDetail';
 import SessionList from './pages/session/SessionList';
 import SessionDetail from './pages/session/SessionDetail';
 import ExamList from './pages/exam/ExamList';
@@ -30,6 +31,7 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="halaqah" element={<HalaqahList />} />
               <Route path="student" element={<StudentList />} />
+              <Route path="student/:id" element={<StudentDetail />} />
               <Route path="session" element={<SessionList />} />
               <Route path="session/:id" element={<SessionDetail />} />
               <Route path="exam" element={<ExamList />} />

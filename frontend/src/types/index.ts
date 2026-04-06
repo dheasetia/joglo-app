@@ -45,6 +45,12 @@ export interface Student {
   lastMemorizedPage?: number;
   totalMemorizedPages: number;
   halaqah?: Halaqah;
+  sessions?: MemorizationSession[];
+  exams?: MemorizationExam[];
+  _count?: {
+    sessions: number;
+    exams: number;
+  };
 }
 
 export interface Halaqah {

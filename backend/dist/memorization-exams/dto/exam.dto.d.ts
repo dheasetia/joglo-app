@@ -1,4 +1,4 @@
-import { ExamType, Recommendation, ExamResultStatus } from '@prisma/client';
+import { ExamType, Recommendation, ExamResultStatus, SessionNoteType } from '@prisma/client';
 export declare class CreateExamDto {
     examDate: string;
     examType: ExamType;
@@ -26,4 +26,10 @@ export declare class UpdateExamDto {
     notes?: string;
     recommendation?: Recommendation;
     resultStatus?: ExamResultStatus;
+}
+export declare class CreateExamNoteDto {
+    noteType: SessionNoteType;
+    page: number;
+    line: number;
+    description: string;
 }

@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, IsDateString } from 'class-validator';
-import { ExamType, Recommendation, ExamResultStatus } from '@prisma/client';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsInt, IsDateString, Min, Max } from 'class-validator';
+import { ExamType, Recommendation, ExamResultStatus, SessionNoteType } from '@prisma/client';
 
 export class CreateExamDto {
   @IsDateString()
@@ -100,4 +100,22 @@ export class UpdateExamDto {
   @IsEnum(ExamResultStatus)
   @IsOptional()
   resultStatus?: ExamResultStatus;
+}
+
+export class CreateExamNoteDto {
+  @IsEnum(SessionNoteType)
+  noteType: SessionNoteType;
+
+  @IsInt()
+  @Min(1)
+  page: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(15)
+  line: number;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 }

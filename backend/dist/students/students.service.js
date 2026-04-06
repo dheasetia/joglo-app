@@ -81,6 +81,7 @@ let StudentsService = class StudentsService {
     }
     async findAll() {
         const students = await this.prisma.student.findMany({
+            orderBy: { fullName: 'asc' },
             include: {
                 halaqah: {
                     include: {
@@ -96,6 +97,20 @@ let StudentsService = class StudentsService {
             where: { id },
             include: {
                 halaqah: {
+                    include: {
+                        teacher: true,
+                    },
+                },
+                sessions: {
+                    orderBy: { sessionDate: 'desc' },
+                    take: 10,
+                    include: {
+                        teacher: true,
+                    },
+                },
+                exams: {
+                    orderBy: { examDate: 'desc' },
+                    take: 5,
                     include: {
                         teacher: true,
                     },
@@ -116,6 +131,7 @@ let StudentsService = class StudentsService {
     async findByHalaqah(halaqahId) {
         const students = await this.prisma.student.findMany({
             where: { halaqahId },
+            orderBy: { fullName: 'asc' },
             include: {
                 halaqah: {
                     include: {
@@ -133,6 +149,7 @@ let StudentsService = class StudentsService {
                     in: halaqahIds,
                 },
             },
+            orderBy: { fullName: 'asc' },
             include: {
                 halaqah: {
                     include: {

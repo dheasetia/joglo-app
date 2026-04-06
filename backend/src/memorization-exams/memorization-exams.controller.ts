@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, UnauthorizedException } from '@nestjs/common';
 import { MemorizationExamsService } from './memorization-exams.service';
-import { CreateExamDto, UpdateExamDto } from './dto/exam.dto';
+import { CreateExamDto, CreateExamNoteDto, UpdateExamDto } from './dto/exam.dto';
 import { JwtGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
@@ -43,17 +43,29 @@ export class MemorizationExamsController {
         where: { userId: user.id }
       });
       if (teacher) {
-        return this.prismaService.memorizationExam.findMany({
+        const exams = await this.prismaService.memorizationExam.findMany({
           where: { teacherId: teacher.id },
           include: {
             student: true,
             teacher: true,
             halaqah: true,
+            noteItems: {
+              orderBy: { createdAt: 'asc' },
+            },
           },
           orderBy: {
             examDate: 'desc',
           },
         });
+
+        return exams.map((exam) => ({
+          ...exam,
+          noteSummary: {
+            KESALAHAN: exam.noteItems.filter((n) => n.noteType === 'KESALAHAN').length,
+            TEGURAN: exam.noteItems.filter((n) => n.noteType === 'TEGURAN').length,
+            PERHATIAN: exam.noteItems.filter((n) => n.noteType === 'PERHATIAN').length,
+          },
+        }));
       }
     }
 
@@ -69,6 +81,12 @@ export class MemorizationExamsController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateExamDto: UpdateExamDto) {
     return this.examsService.update(id, updateExamDto);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
+  @Post(':id/notes')
+  createNote(@GetUser() user: any, @Param('id') id: string, @Body() dto: CreateExamNoteDto) {
+    return this.examsService.createNote(user, id, dto);
   }
 
   @Roles(UserRole.ADMIN)
