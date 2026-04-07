@@ -1,15 +1,18 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExamDto, UpdateExamDto } from './dto/exam.dto';
 import { SessionNoteType, UserRole } from '@prisma/client';
+import { StorageService } from '../storage/storage.service';
 export declare class MemorizationExamsService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private storageService;
+    constructor(prisma: PrismaService, storageService: StorageService);
+    private mapStudentPhotoUrl;
     private isExamNoteSchemaNotReady;
     private withNoteSummary;
     create(teacherId: string, dto: CreateExamDto): Promise<any>;
-    findAll(): Promise<any>;
+    findAll(): Promise<any[]>;
     findOne(id: string): Promise<any>;
-    findByStudent(studentId: string): Promise<any>;
+    findByStudent(studentId: string): Promise<any[]>;
     update(id: string, dto: UpdateExamDto): Promise<any>;
     createNote(user: {
         id: string;

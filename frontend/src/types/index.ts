@@ -23,6 +23,7 @@ export interface Teacher {
   notes?: string;
   isActive: boolean;
   userId: string;
+  user?: User;
 }
 
 export enum Gender {

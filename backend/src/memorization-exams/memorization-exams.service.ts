@@ -2,10 +2,33 @@ import { Injectable, NotFoundException, BadRequestException, UnauthorizedExcepti
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExamDto, UpdateExamDto } from './dto/exam.dto';
 import { ExamResultStatus, SessionNoteType, UserRole } from '@prisma/client';
+import { StorageService } from '../storage/storage.service';
+import { sanitizePhotoUrl } from '../common/photo-url.util';
 
 @Injectable()
 export class MemorizationExamsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private storageService: StorageService,
+  ) {}
+
+  private async mapStudentPhotoUrl(exam: any) {
+    if (exam?.student?.photoUrl) {
+      const sanitizedPhoto = sanitizePhotoUrl(exam.student.photoUrl);
+      if (sanitizedPhoto && !/^https?:\/\//i.test(sanitizedPhoto)) {
+        try {
+          const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+          exam.student.photoUrl = signed.url;
+        } catch (error) {
+          console.error('Error generating presigned URL for exam student:', error);
+          exam.student.photoUrl = null;
+        }
+      } else {
+        exam.student.photoUrl = sanitizedPhoto;
+      }
+    }
+    return exam;
+  }
 
   private isExamNoteSchemaNotReady(error: unknown): boolean {
     if (!(error instanceof Error)) {
@@ -96,7 +119,8 @@ export class MemorizationExamsService {
       });
     }
 
-    return this.withNoteSummary(exam);
+    const examWithSummary = this.withNoteSummary(exam);
+    return this.mapStudentPhotoUrl(examWithSummary);
   }
 
   async findAll() {
@@ -132,7 +156,7 @@ export class MemorizationExamsService {
       });
     }
 
-    return exams.map((exam) => this.withNoteSummary(exam));
+    return Promise.all(exams.map((exam) => this.mapStudentPhotoUrl(this.withNoteSummary(exam))));
   }
 
   async findOne(id: string) {
@@ -168,7 +192,8 @@ export class MemorizationExamsService {
       throw new NotFoundException(`Exam with ID ${id} not found`);
     }
 
-    return this.withNoteSummary(exam);
+    const examWithSummary = this.withNoteSummary(exam);
+    return this.mapStudentPhotoUrl(examWithSummary);
   }
 
   async findByStudent(studentId: string) {
@@ -204,7 +229,7 @@ export class MemorizationExamsService {
       });
     }
 
-    return exams.map((exam) => this.withNoteSummary(exam));
+    return Promise.all(exams.map((exam) => this.mapStudentPhotoUrl(this.withNoteSummary(exam))));
   }
 
   async update(id: string, dto: UpdateExamDto) {
@@ -263,7 +288,8 @@ export class MemorizationExamsService {
       });
     }
 
-    return this.withNoteSummary(updatedExam);
+    const examWithSummary = this.withNoteSummary(updatedExam);
+    return this.mapStudentPhotoUrl(examWithSummary);
   }
 
   async createNote(user: { id: string; role: UserRole }, examId: string, dto: { noteType: SessionNoteType; page: number; line: number; description: string }) {

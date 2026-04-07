@@ -10,11 +10,13 @@ exports.HalaqahsModule = void 0;
 const common_1 = require("@nestjs/common");
 const halaqahs_service_1 = require("./halaqahs.service");
 const halaqahs_controller_1 = require("./halaqahs.controller");
+const storage_module_1 = require("../storage/storage.module");
 let HalaqahsModule = class HalaqahsModule {
 };
 exports.HalaqahsModule = HalaqahsModule;
 exports.HalaqahsModule = HalaqahsModule = __decorate([
     (0, common_1.Module)({
+        imports: [storage_module_1.StorageModule],
         providers: [halaqahs_service_1.HalaqahsService],
         controllers: [halaqahs_controller_1.HalaqahsController]
     })

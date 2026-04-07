@@ -6,7 +6,7 @@ export declare class MemorizationExamsController {
     private prismaService;
     constructor(examsService: MemorizationExamsService, prismaService: PrismaService);
     create(user: any, createExamDto: CreateExamDto): Promise<any>;
-    findAll(user: any, studentId?: string): Promise<any>;
+    findAll(user: any, studentId?: string): Promise<any[]>;
     findOne(id: string): Promise<any>;
     update(id: string, updateExamDto: UpdateExamDto): Promise<any>;
     createNote(user: any, id: string, dto: CreateExamNoteDto): Promise<any>;
@@ -14,9 +14,9 @@ export declare class MemorizationExamsController {
     removeNote(user: any, id: string, noteId: string): Promise<any>;
     remove(id: string): Promise<{
         id: string;
-        notes: string | null;
         createdAt: Date;
         updatedAt: Date;
+        notes: string | null;
         examDate: Date;
         examType: import("@prisma/client").$Enums.ExamType;
         title: string | null;

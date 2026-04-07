@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Student, MemorizationSession, MemorizationExam } from '../../types';
 import { getExamTypeLabel } from '../../utils/examTypeLabel';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 import { 
   ArrowLeft, 
   User, 
@@ -66,12 +67,22 @@ const StudentReport: React.FC = () => {
         {/* Profile Card */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
           <div className="flex flex-col items-center text-center space-y-2">
-            <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center text-primary">
-              <User size={40} />
+            <div className="w-24 h-24 rounded-full bg-accent/20 flex items-center justify-center text-primary overflow-hidden border-2 border-primary/10">
+              {student.photoUrl && resolvePhotoUrl(student.photoUrl) ? (
+                <img 
+                  src={resolvePhotoUrl(student.photoUrl)} 
+                  alt={student.fullName} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User size={48} />
+              )}
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">{student.fullName}</h2>
-              <p className="text-gray-500 text-sm">NIS: {student.nis || '-'}</p>
+              <p className="text-gray-500 text-sm">
+                {student.level && student.className ? `${student.level} - Kelas ${student.className}` : (student.level || student.className || '-')}
+              </p>
             </div>
             <span className="bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
               Juz {student.currentJuz}

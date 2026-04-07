@@ -429,7 +429,7 @@ const StudentList: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Cari nama atau NIS santri..."
+            placeholder="Cari nama, jenjang atau kelas..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -526,7 +526,9 @@ const StudentList: React.FC = () => {
                           )}
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">{student.fullName}</div>
-                            <div className="text-sm text-gray-500">NIS: {student.nis || '-'}</div>
+                            <div className="text-sm text-gray-500">
+                              {student.level && student.className ? `${student.level} - Kelas ${student.className}` : (student.level || student.className || '-')}
+                            </div>
                           </div>
                         </div>
                       </td>

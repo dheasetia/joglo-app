@@ -20,6 +20,7 @@ import { id } from 'date-fns/locale';
 import Modal from '../../components/common/modals/Modal';
 import { useToast } from '../../components/common/toast/ToastProvider';
 import { formatPageRangeWithJuz } from '../../utils/quranPage';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 
 const SessionList: React.FC = () => {
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -572,6 +573,24 @@ const SessionList: React.FC = () => {
             <div key={session.id} className="card hover:shadow-md transition-shadow p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-4 flex-1">
+                  <div className="flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                      {session.student?.photoUrl ? (
+                        <img 
+                          src={resolvePhotoUrl(session.student.photoUrl)} 
+                          alt={session.student.fullName} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '';
+                            (e.target as HTMLImageElement).className = 'hidden';
+                            (e.target as HTMLImageElement).parentElement?.classList.add('bg-primary/10');
+                          }}
+                        />
+                      ) : (
+                        <User className="text-gray-400" size={24} />
+                      )}
+                    </div>
+                  </div>
                   <div className="hidden sm:flex flex-col items-center justify-center p-3 bg-gray-50 rounded-lg min-w-[80px]">
                     <span className="text-xs text-gray-500 uppercase font-bold">{format(new Date(session.sessionDate), 'MMM', { locale: id })}</span>
                     <span className="text-xl font-bold text-primary">{format(new Date(session.sessionDate), 'dd')}</span>

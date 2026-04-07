@@ -10,11 +10,13 @@ exports.MemorizationExamsModule = void 0;
 const common_1 = require("@nestjs/common");
 const memorization_exams_service_1 = require("./memorization-exams.service");
 const memorization_exams_controller_1 = require("./memorization-exams.controller");
+const storage_module_1 = require("../storage/storage.module");
 let MemorizationExamsModule = class MemorizationExamsModule {
 };
 exports.MemorizationExamsModule = MemorizationExamsModule;
 exports.MemorizationExamsModule = MemorizationExamsModule = __decorate([
     (0, common_1.Module)({
+        imports: [storage_module_1.StorageModule],
         providers: [memorization_exams_service_1.MemorizationExamsService],
         controllers: [memorization_exams_controller_1.MemorizationExamsController]
     })

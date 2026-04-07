@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { Halaqah, Student } from '../../types';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 import { 
   ArrowLeft, 
   Users, 
@@ -14,7 +15,10 @@ import {
 
 const HalaqahReport: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [halaqah, setHalaqah] = useState<(Halaqah & { students: (Student & { _count: { sessions: number } })[] }) | null>(null);
+  const [halaqah, setHalaqah] = useState<(Halaqah & { 
+    teacher: any,
+    students: (Student & { _count: { sessions: number } })[] 
+  }) | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchHalaqahReport = useCallback(async () => {
@@ -62,8 +66,16 @@ const HalaqahReport: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary/10 text-primary rounded-lg flex items-center justify-center">
-            <Users size={24} />
+          <div className="w-12 h-12 bg-primary/10 text-primary rounded-lg flex items-center justify-center overflow-hidden border border-gray-50">
+            {halaqah.teacher?.user?.photoUrl && resolvePhotoUrl(halaqah.teacher.user.photoUrl) ? (
+              <img 
+                src={resolvePhotoUrl(halaqah.teacher.user.photoUrl)} 
+                alt={halaqah.teacher?.fullName || 'Muhaffizh'} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <Users size={24} />
+            )}
           </div>
           <div>
             <p className="text-sm text-gray-500">Total Santri</p>
@@ -71,8 +83,16 @@ const HalaqahReport: React.FC = () => {
           </div>
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
-          <div className="w-12 h-12 bg-accent/20 text-primary rounded-lg flex items-center justify-center">
-            <UserIcon size={24} />
+          <div className="w-12 h-12 bg-accent/20 text-primary rounded-lg flex items-center justify-center overflow-hidden">
+            {halaqah.teacher?.user?.photoUrl && resolvePhotoUrl(halaqah.teacher.user.photoUrl) ? (
+              <img 
+                src={resolvePhotoUrl(halaqah.teacher.user.photoUrl)} 
+                alt={halaqah.teacher?.fullName || 'Muhaffizh'} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <UserIcon size={24} />
+            )}
           </div>
           <div>
             <p className="text-sm text-gray-500">Pengajar</p>
@@ -115,11 +135,26 @@ const HalaqahReport: React.FC = () => {
                 halaqah.students.map((student) => (
                   <tr key={student.id} className="hover:bg-gray-50 transition-colors group">
                     <td className="px-6 py-4">
-                      <div>
-                        <p className="font-semibold text-gray-900 group-hover:text-primary transition-colors">
-                          {student.fullName}
-                        </p>
-                        <p className="text-xs text-gray-500">NIS: {student.nis || '-'}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200">
+                          {student.photoUrl && resolvePhotoUrl(student.photoUrl) ? (
+                            <img 
+                              src={resolvePhotoUrl(student.photoUrl)} 
+                              alt={student.fullName} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <UserIcon size={18} className="text-gray-400" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 group-hover:text-primary transition-colors line-clamp-1">
+                            {student.fullName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {student.level && student.className ? `${student.level} - Kelas ${student.className}` : (student.level || student.className || '-')}
+                          </p>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">

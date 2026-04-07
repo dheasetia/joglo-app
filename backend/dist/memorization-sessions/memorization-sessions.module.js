@@ -10,11 +10,13 @@ exports.MemorizationSessionsModule = void 0;
 const common_1 = require("@nestjs/common");
 const memorization_sessions_service_1 = require("./memorization-sessions.service");
 const memorization_sessions_controller_1 = require("./memorization-sessions.controller");
+const storage_module_1 = require("../storage/storage.module");
 let MemorizationSessionsModule = class MemorizationSessionsModule {
 };
 exports.MemorizationSessionsModule = MemorizationSessionsModule;
 exports.MemorizationSessionsModule = MemorizationSessionsModule = __decorate([
     (0, common_1.Module)({
+        imports: [storage_module_1.StorageModule],
         providers: [memorization_sessions_service_1.MemorizationSessionsService],
         controllers: [memorization_sessions_controller_1.MemorizationSessionsController]
     })

@@ -13,10 +13,33 @@ exports.MemorizationSessionsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const storage_service_1 = require("../storage/storage.service");
+const photo_url_util_1 = require("../common/photo-url.util");
 let MemorizationSessionsService = class MemorizationSessionsService {
     prisma;
-    constructor(prisma) {
+    storageService;
+    constructor(prisma, storageService) {
         this.prisma = prisma;
+        this.storageService = storageService;
+    }
+    async mapStudentPhotoUrl(session) {
+        if (session?.student?.photoUrl) {
+            const sanitizedPhoto = (0, photo_url_util_1.sanitizePhotoUrl)(session.student.photoUrl);
+            if (sanitizedPhoto && !/^https?:\/\//i.test(sanitizedPhoto)) {
+                try {
+                    const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+                    session.student.photoUrl = signed.url;
+                }
+                catch (error) {
+                    console.error('Error generating presigned URL for session student:', error);
+                    session.student.photoUrl = null;
+                }
+            }
+            else {
+                session.student.photoUrl = sanitizedPhoto;
+            }
+        }
+        return session;
     }
     isSessionNoteTableMissing(error) {
         const err = error;
@@ -161,14 +184,15 @@ let MemorizationSessionsService = class MemorizationSessionsService {
         if (dto.sessionType === client_1.SessionType.ZIYADAH && recommendation === client_1.Recommendation.CONTINUE) {
             await this.updateStudentProgress(dto.studentId);
         }
-        return this.withNoteSummary(session);
+        const sessionWithSummary = this.withNoteSummary(session);
+        return this.mapStudentPhotoUrl(sessionWithSummary);
     }
     async findAll() {
         return this.findManyWithSafeInclude({
             orderBy: {
                 sessionDate: 'desc',
             },
-        }).then((items) => items.map((item) => this.withNoteSummary(item)));
+        }).then((items) => Promise.all(items.map((item) => this.mapStudentPhotoUrl(this.withNoteSummary(item)))));
     }
     async findByDate(date, options) {
         const { start, end } = this.buildDateRange(date);
@@ -189,14 +213,15 @@ let MemorizationSessionsService = class MemorizationSessionsService {
                     createdAt: 'desc',
                 },
             ],
-        }).then((items) => items.map((item) => this.withNoteSummary(item)));
+        }).then((items) => Promise.all(items.map((item) => this.mapStudentPhotoUrl(this.withNoteSummary(item)))));
     }
     async findOne(id) {
         const session = await this.findUniqueWithSafeInclude(id);
         if (!session) {
             throw new common_1.NotFoundException(`Session with ID ${id} not found`);
         }
-        return this.withNoteSummary(session);
+        const sessionWithSummary = this.withNoteSummary(session);
+        return this.mapStudentPhotoUrl(sessionWithSummary);
     }
     async findByStudent(studentId) {
         return this.findManyWithSafeInclude({
@@ -204,7 +229,7 @@ let MemorizationSessionsService = class MemorizationSessionsService {
             orderBy: {
                 sessionDate: 'desc',
             },
-        }).then((items) => items.map((item) => this.withNoteSummary(item)));
+        }).then((items) => Promise.all(items.map((item) => this.mapStudentPhotoUrl(this.withNoteSummary(item)))));
     }
     async findByTeacher(teacherId, studentId) {
         return this.findManyWithSafeInclude({
@@ -215,7 +240,7 @@ let MemorizationSessionsService = class MemorizationSessionsService {
             orderBy: {
                 sessionDate: 'desc',
             },
-        }).then((items) => items.map((item) => this.withNoteSummary(item)));
+        }).then((items) => Promise.all(items.map((item) => this.mapStudentPhotoUrl(this.withNoteSummary(item)))));
     }
     async update(id, dto) {
         const oldSession = await this.findUniqueWithSafeInclude(id);
@@ -272,7 +297,8 @@ let MemorizationSessionsService = class MemorizationSessionsService {
             oldSession.sessionType === client_1.SessionType.ZIYADAH) {
             await this.updateStudentProgress(updatedSession.studentId);
         }
-        return this.withNoteSummary(updatedSession);
+        const sessionWithSummary = this.withNoteSummary(updatedSession);
+        return this.mapStudentPhotoUrl(sessionWithSummary);
     }
     async createNote(sessionId, dto) {
         const session = await this.prisma.memorizationSession.findUnique({
@@ -396,6 +422,7 @@ let MemorizationSessionsService = class MemorizationSessionsService {
 exports.MemorizationSessionsService = MemorizationSessionsService;
 exports.MemorizationSessionsService = MemorizationSessionsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], MemorizationSessionsService);
 //# sourceMappingURL=memorization-sessions.service.js.map

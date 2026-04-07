@@ -90,11 +90,10 @@ const StudentDetail: React.FC = () => {
           <div className="text-gray-500">Jenis Kelamin</div>
           <div className="font-medium">{student.gender === 'MALE' ? 'Laki-laki' : 'Perempuan'}</div>
           
-          <div className="text-gray-500">Jenjang</div>
-          <div className="font-medium">{student.level || '-'}</div>
-          
-          <div className="text-gray-500">Kelas</div>
-          <div className="font-medium">{student.className || '-'}</div>
+          <div className="text-gray-500">Kelas & Jenjang</div>
+          <div className="font-medium">
+            {student.level && student.className ? `${student.level} - Kelas ${student.className}` : (student.level || student.className || '-')}
+          </div>
           
           <div className="text-gray-500">Status</div>
           <div>
@@ -289,8 +288,11 @@ const StudentDetail: React.FC = () => {
           </Link>
           <h1 className="text-3xl font-bold text-gray-900">{student.fullName}</h1>
           <div className="flex flex-wrap gap-3">
-            <span className="flex items-center gap-1 text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full">
-              <Calendar size={14} /> NIS: {student.nis || '-'}
+            <span className="flex items-center gap-1 text-sm bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-medium">
+              <span className="bg-primary/20 text-primary px-2 rounded-full text-xs">
+                {student.level && student.className ? `${student.level} - Kelas ${student.className}` : (student.level || student.className || '-')}
+              </span>
+              <span className="text-gray-400 ml-1">NIS: {student.nis || '-'}</span>
             </span>
             <span className="flex items-center gap-1 text-sm bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
               <BookOpen size={14} /> {juzFromPage ? `Juz ${juzFromPage}` : `Juz ${student.currentJuz}`}

@@ -5,13 +5,17 @@ import { UserRole } from '../../types';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { getExamTypeLabel } from '../../utils/examTypeLabel';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
+import { Link } from 'react-router-dom';
 import { 
   Users, 
   GraduationCap, 
   BookOpen, 
   ClipboardCheck,
   TrendingUp,
-  Clock
+  Clock,
+  ChevronRight,
+  User as UserIcon
 } from 'lucide-react';
 
 interface Stats {
@@ -185,19 +189,41 @@ const Dashboard: React.FC = () => {
           <div className="space-y-4">
             {stats?.recentSessions && stats.recentSessions.length > 0 ? (
               stats.recentSessions.map((session, idx) => (
-                <div key={idx} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{session.student?.fullName}</p>
-                    <p className="text-xs text-gray-500">{formatUstadzName(session.teacher?.fullName)}</p>
-                    <p className={`inline-flex mt-1 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full tracking-wide ${getSessionTypeBadgeClass(session.sessionType)}`}>
-                      {formatEnumLabel(session.sessionType)}
-                    </p>
+                <Link key={idx} to={`/session/${session.id}`} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0 hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors group">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200">
+                      {session.student?.photoUrl && resolvePhotoUrl(session.student.photoUrl) ? (
+                        <img 
+                          src={resolvePhotoUrl(session.student.photoUrl)} 
+                          alt={session.student?.fullName || 'Santri'} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <UserIcon size={18} className="text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors line-clamp-1">{session.student?.fullName}</p>
+                      <p className="text-[10px] text-gray-500 flex items-center gap-1">
+                        {session.student?.level && session.student?.className 
+                          ? `${session.student.level} - Kelas ${session.student.className}` 
+                          : (session.student?.level || session.student?.className || '-')}
+                        <span className="text-gray-300 mx-1">•</span>
+                        {formatUstadzName(session.teacher?.fullName)}
+                      </p>
+                      <p className={`inline-flex mt-1 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full tracking-wide ${getSessionTypeBadgeClass(session.sessionType)}`}>
+                        {formatEnumLabel(session.sessionType)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-primary">{session.score}</p>
-                    <p className="text-[10px] text-gray-400">{formatDateSafe(session.sessionDate ?? session.createdAt, 'HH:mm')}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-primary">{session.score}</p>
+                      <p className="text-[10px] text-gray-400">{formatDateSafe(session.sessionDate ?? session.createdAt, 'HH:mm')}</p>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
                   </div>
-                </div>
+                </Link>
               ))
             ) : (
               <p className="text-gray-500 text-sm text-center py-8 italic">Belum ada aktivitas terbaru hari ini.</p>
@@ -213,22 +239,44 @@ const Dashboard: React.FC = () => {
           <div className="space-y-4">
             {stats?.upcomingExams && stats.upcomingExams.length > 0 ? (
               stats.upcomingExams.map((exam, idx) => (
-                <div key={idx} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{exam.student?.fullName}</p>
-                    <p className="text-xs text-gray-500">{formatUstadzName(exam.teacher?.fullName)}</p>
-                    <p className={`inline-flex mt-1 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full tracking-wide ${getExamTypeBadgeClass(exam.examType)}`}>
-                      {getExamTypeLabel(exam.examType)}
-                    </p>
+                <Link key={idx} to={`/exam/${exam.id}`} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0 hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors group">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200">
+                      {exam.student?.photoUrl && resolvePhotoUrl(exam.student.photoUrl) ? (
+                        <img 
+                          src={resolvePhotoUrl(exam.student.photoUrl)} 
+                          alt={exam.student?.fullName || 'Santri'} 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <UserIcon size={18} className="text-gray-400" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors line-clamp-1">{exam.student?.fullName}</p>
+                      <p className="text-[10px] text-gray-500 flex items-center gap-1">
+                        {exam.student?.level && exam.student?.className 
+                          ? `${exam.student.level} - Kelas ${exam.student.className}` 
+                          : (exam.student?.level || exam.student?.className || '-')}
+                        <span className="text-gray-300 mx-1">•</span>
+                        {formatUstadzName(exam.teacher?.fullName)}
+                      </p>
+                      <p className={`inline-flex mt-1 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full tracking-wide ${getExamTypeBadgeClass(exam.examType)}`}>
+                        {getExamTypeLabel(exam.examType)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-xs font-bold px-2 py-0.5 rounded-full ${exam.resultStatus === 'PASSED' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {exam.resultStatus === 'PASSED' ? 'Lulus' : 'Gagal'}
-                    </p>
-                    <p className="text-xs font-semibold text-gray-700 mt-1">Nilai: {exam.score ?? '-'}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">{formatDateSafe(exam.examDate, 'dd/MM/yyyy')}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className={`text-xs font-bold px-2 py-0.5 rounded-full ${exam.resultStatus === 'PASSED' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {exam.resultStatus === 'PASSED' ? 'Lulus' : 'Gagal'}
+                      </p>
+                      <p className="text-xs font-semibold text-gray-700 mt-1">Nilai: {exam.score ?? '-'}</p>
+                      <p className="text-[10px] text-gray-400 mt-1">{formatDateSafe(exam.examDate, 'dd/MM/yyyy')}</p>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300 group-hover:text-primary transition-colors" />
                   </div>
-                </div>
+                </Link>
               ))
             ) : (
               <p className="text-gray-500 text-sm text-center py-8 italic">Tidak ada data ujian terbaru.</p>

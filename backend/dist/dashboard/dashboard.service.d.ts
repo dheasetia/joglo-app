@@ -1,8 +1,11 @@
 import { PrismaService } from '../prisma/prisma.service';
+import { StorageService } from '../storage/storage.service';
 export declare class DashboardService {
     private prisma;
-    constructor(prisma: PrismaService);
+    private readonly storageService;
+    constructor(prisma: PrismaService, storageService: StorageService);
     private readonly logger;
+    private mapPhotoUrl;
     private getRecentSessions;
     private getUpcomingExams;
     getAdminStats(): Promise<{
@@ -18,6 +21,7 @@ export declare class DashboardService {
             sessionType: string;
             student: {
                 fullName: string;
+                photoUrl: string | null;
             };
             teacher: {
                 fullName: string;
@@ -31,6 +35,7 @@ export declare class DashboardService {
             examType: string;
             student: {
                 fullName: string;
+                photoUrl: string | null;
             };
             teacher: {
                 fullName: string;
@@ -48,6 +53,7 @@ export declare class DashboardService {
             sessionType: string;
             student: {
                 fullName: string;
+                photoUrl: string | null;
             };
             teacher: {
                 fullName: string;
@@ -61,6 +67,7 @@ export declare class DashboardService {
             examType: string;
             student: {
                 fullName: string;
+                photoUrl: string | null;
             };
             teacher: {
                 fullName: string;

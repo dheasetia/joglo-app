@@ -1,10 +1,47 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { sanitizePhotoUrl } from '../common/photo-url.util';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class DashboardService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {}
   private readonly logger = new Logger(DashboardService.name);
+
+  private async mapPhotoUrl<T extends { photoUrl?: string | null }>(record: T): Promise<T> {
+    const sanitizedPhoto = sanitizePhotoUrl(record.photoUrl);
+
+    if (!sanitizedPhoto) {
+      return {
+        ...record,
+        photoUrl: sanitizedPhoto,
+      };
+    }
+
+    if (/^https?:\/\//i.test(sanitizedPhoto)) {
+      return {
+        ...record,
+        photoUrl: sanitizedPhoto,
+      };
+    }
+
+    try {
+      const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+      return {
+        ...record,
+        photoUrl: signed.url,
+      };
+    } catch (error) {
+      console.error('Error generating presigned URL:', error);
+      return {
+        ...record,
+        photoUrl: null,
+      };
+    }
+  }
 
   private async getRecentSessions(teacherId?: string) {
     const queryAll = this.prisma.$queryRaw<Array<{
@@ -14,6 +51,7 @@ export class DashboardService {
       sessionType: string | null;
       studentName: string | null;
       teacherName: string | null;
+      studentPhoto: string | null;
     }>>`
       SELECT
         ms."id",
@@ -21,7 +59,8 @@ export class DashboardService {
         ms."score",
         ms."sessionType"::text AS "sessionType",
         s."fullName" AS "studentName",
-        t."fullName" AS "teacherName"
+        t."fullName" AS "teacherName",
+        s."photoUrl" AS "studentPhoto"
       FROM "MemorizationSession" ms
       LEFT JOIN "Student" s ON s."id" = ms."studentId"
       LEFT JOIN "Teacher" t ON t."id" = ms."teacherId"
@@ -36,6 +75,7 @@ export class DashboardService {
       sessionType: string | null;
       studentName: string | null;
       teacherName: string | null;
+      studentPhoto: string | null;
     }>>`
       SELECT
         ms."id",
@@ -43,7 +83,8 @@ export class DashboardService {
         ms."score",
         ms."sessionType"::text AS "sessionType",
         s."fullName" AS "studentName",
-        t."fullName" AS "teacherName"
+        t."fullName" AS "teacherName",
+        s."photoUrl" AS "studentPhoto"
       FROM "MemorizationSession" ms
       LEFT JOIN "Student" s ON s."id" = ms."studentId"
       LEFT JOIN "Teacher" t ON t."id" = ms."teacherId"
@@ -59,6 +100,7 @@ export class DashboardService {
       sessionType: string | null;
       studentName: string | null;
       teacherName: string | null;
+      studentPhoto: string | null;
     }> = [];
 
     try {
@@ -68,14 +110,19 @@ export class DashboardService {
       rows = [];
     }
 
-    return rows.map((row) => ({
-      id: row.id,
-      sessionDate: row.sessionDate,
-      score: row.score ?? 0,
-      sessionType: row.sessionType ?? '-',
-      student: { fullName: row.studentName ?? '-' },
-      teacher: { fullName: row.teacherName ?? '-' },
-    }));
+    return Promise.all(
+      rows.map(async (row) => ({
+        id: row.id,
+        sessionDate: row.sessionDate,
+        score: row.score ?? 0,
+        sessionType: row.sessionType ?? '-',
+        student: await this.mapPhotoUrl({
+          fullName: row.studentName ?? '-',
+          photoUrl: row.studentPhoto,
+        }),
+        teacher: { fullName: row.teacherName ?? '-' },
+      })),
+    );
   }
 
   private async getUpcomingExams(teacherId?: string) {
@@ -87,6 +134,7 @@ export class DashboardService {
       examType: string | null;
       studentName: string | null;
       teacherName: string | null;
+      studentPhoto: string | null;
     }>>`
       SELECT
         me."id",
@@ -95,7 +143,8 @@ export class DashboardService {
         me."resultStatus"::text AS "resultStatus",
         me."examType"::text AS "examType",
         s."fullName" AS "studentName",
-        t."fullName" AS "teacherName"
+        t."fullName" AS "teacherName",
+        s."photoUrl" AS "studentPhoto"
       FROM "MemorizationExam" me
       LEFT JOIN "Student" s ON s."id" = me."studentId"
       LEFT JOIN "Teacher" t ON t."id" = me."teacherId"
@@ -111,6 +160,7 @@ export class DashboardService {
       examType: string | null;
       studentName: string | null;
       teacherName: string | null;
+      studentPhoto: string | null;
     }>>`
       SELECT
         me."id",
@@ -119,7 +169,8 @@ export class DashboardService {
         me."resultStatus"::text AS "resultStatus",
         me."examType"::text AS "examType",
         s."fullName" AS "studentName",
-        t."fullName" AS "teacherName"
+        t."fullName" AS "teacherName",
+        s."photoUrl" AS "studentPhoto"
       FROM "MemorizationExam" me
       LEFT JOIN "Student" s ON s."id" = me."studentId"
       LEFT JOIN "Teacher" t ON t."id" = me."teacherId"
@@ -136,6 +187,7 @@ export class DashboardService {
       examType: string | null;
       studentName: string | null;
       teacherName: string | null;
+      studentPhoto: string | null;
     }> = [];
 
     try {
@@ -145,15 +197,20 @@ export class DashboardService {
       rows = [];
     }
 
-    return rows.map((row) => ({
-      id: row.id,
-      examDate: row.examDate,
-      score: row.score ?? 0,
-      resultStatus: row.resultStatus ?? 'FAILED',
-      examType: row.examType ?? '-',
-      student: { fullName: row.studentName ?? '-' },
-      teacher: { fullName: row.teacherName ?? '-' },
-    }));
+    return Promise.all(
+      rows.map(async (row) => ({
+        id: row.id,
+        examDate: row.examDate,
+        score: row.score ?? 0,
+        resultStatus: row.resultStatus ?? 'FAILED',
+        examType: row.examType ?? '-',
+        student: await this.mapPhotoUrl({
+          fullName: row.studentName ?? '-',
+          photoUrl: row.studentPhoto,
+        }),
+        teacher: { fullName: row.teacherName ?? '-' },
+      })),
+    );
   }
 
   async getAdminStats() {

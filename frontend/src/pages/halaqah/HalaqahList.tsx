@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { Halaqah, UserRole } from '../../types';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 import { 
   Users, 
   Plus, 
@@ -9,7 +10,8 @@ import {
   Edit, 
   Trash2,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  User as UserIcon
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Modal from '../../components/common/modals/Modal';
@@ -264,8 +266,18 @@ const HalaqahList: React.FC = () => {
             <div key={halaqah.id} className="card hover:shadow-md transition-shadow flex flex-col group relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-2 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="flex justify-between items-start mb-4">
-                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <Users size={24} />
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex items-center justify-center bg-gray-50 text-primary">
+                        {halaqah.teacher?.user?.photoUrl && resolvePhotoUrl(halaqah.teacher.user.photoUrl) ? (
+                            <img 
+                                src={resolvePhotoUrl(halaqah.teacher.user.photoUrl)} 
+                                alt={halaqah.teacher?.fullName || 'Muhaffizh'} 
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="p-2 bg-primary/10 w-full h-full flex items-center justify-center">
+                                <UserIcon size={24} />
+                            </div>
+                        )}
                     </div>
                     {isAdmin && (
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -295,7 +307,7 @@ const HalaqahList: React.FC = () => {
                 <div className="space-y-3 pt-4 border-t border-gray-100">
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Muhaffizh:</span>
-                        <span className="font-medium text-gray-900">{halaqah.teacher?.fullName}</span>
+                        <span className="font-medium text-gray-900">{halaqah.teacher?.fullName || 'Belum ditentukan'}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Total Santri:</span>

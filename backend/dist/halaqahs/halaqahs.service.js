@@ -12,10 +12,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.HalaqahsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
+const storage_service_1 = require("../storage/storage.service");
+const photo_url_util_1 = require("../common/photo-url.util");
 let HalaqahsService = class HalaqahsService {
     prisma;
-    constructor(prisma) {
+    storageService;
+    constructor(prisma, storageService) {
         this.prisma = prisma;
+        this.storageService = storageService;
+    }
+    async mapHalaqahPhoto(halaqah) {
+        if (halaqah.teacher?.user) {
+            const sanitized = (0, photo_url_util_1.sanitizePhotoUrl)(halaqah.teacher.user.photoUrl);
+            if (!sanitized) {
+                halaqah.teacher.user.photoUrl = null;
+            }
+            else if (/^https?:\/\//i.test(sanitized)) {
+                halaqah.teacher.user.photoUrl = sanitized;
+            }
+            else {
+                const signed = await this.storageService.createPresignedDownloadUrl(sanitized);
+                halaqah.teacher.user.photoUrl = signed.url;
+            }
+        }
+        return halaqah;
     }
     async create(dto) {
         const teacher = await this.prisma.teacher.findUnique({
@@ -35,55 +55,105 @@ let HalaqahsService = class HalaqahsService {
         if (existing) {
             throw new common_1.ConflictException(`Halaqah with name ${dto.name} already exists for this teacher`);
         }
-        return this.prisma.halaqah.create({
+        const halaqah = await this.prisma.halaqah.create({
             data: dto,
             include: {
-                teacher: true,
+                teacher: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                photoUrl: true,
+                            },
+                        },
+                    },
+                },
             },
         });
+        return this.mapHalaqahPhoto(halaqah);
     }
     async findAll() {
-        return this.prisma.halaqah.findMany({
+        const halaqahs = await this.prisma.halaqah.findMany({
             include: {
-                teacher: true,
+                teacher: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                photoUrl: true,
+                            },
+                        },
+                    },
+                },
                 _count: {
                     select: { students: true },
                 },
             },
         });
+        return Promise.all(halaqahs.map(h => this.mapHalaqahPhoto(h)));
     }
     async findOne(id) {
         const halaqah = await this.prisma.halaqah.findUnique({
             where: { id },
             include: {
-                teacher: true,
+                teacher: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                photoUrl: true,
+                            },
+                        },
+                    },
+                },
                 students: true,
             },
         });
         if (!halaqah) {
             throw new common_1.NotFoundException(`Halaqah with ID ${id} not found`);
         }
-        return halaqah;
+        return this.mapHalaqahPhoto(halaqah);
     }
     async findByTeacher(teacherId) {
-        return this.prisma.halaqah.findMany({
+        const halaqahs = await this.prisma.halaqah.findMany({
             where: { teacherId },
             include: {
+                teacher: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                photoUrl: true,
+                            },
+                        },
+                    },
+                },
                 _count: {
                     select: { students: true },
                 },
             },
         });
+        return Promise.all(halaqahs.map(h => this.mapHalaqahPhoto(h)));
     }
     async update(id, dto) {
-        const halaqah = await this.findOne(id);
-        return this.prisma.halaqah.update({
+        await this.findOne(id);
+        const updated = await this.prisma.halaqah.update({
             where: { id },
             data: dto,
             include: {
-                teacher: true,
+                teacher: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                photoUrl: true,
+                            },
+                        },
+                    },
+                },
             },
         });
+        return this.mapHalaqahPhoto(updated);
     }
     async remove(id) {
         await this.findOne(id);
@@ -95,6 +165,7 @@ let HalaqahsService = class HalaqahsService {
 exports.HalaqahsService = HalaqahsService;
 exports.HalaqahsService = HalaqahsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], HalaqahsService);
 //# sourceMappingURL=halaqahs.service.js.map

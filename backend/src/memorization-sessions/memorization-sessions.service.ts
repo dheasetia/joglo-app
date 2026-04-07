@@ -2,10 +2,33 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSessionDto, UpdateSessionDto } from './dto/session.dto';
 import { Recommendation, SessionNoteType, SessionType, UserRole } from '@prisma/client';
+import { StorageService } from '../storage/storage.service';
+import { sanitizePhotoUrl } from '../common/photo-url.util';
 
 @Injectable()
 export class MemorizationSessionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private storageService: StorageService,
+  ) {}
+
+  private async mapStudentPhotoUrl(session: any) {
+    if (session?.student?.photoUrl) {
+      const sanitizedPhoto = sanitizePhotoUrl(session.student.photoUrl);
+      if (sanitizedPhoto && !/^https?:\/\//i.test(sanitizedPhoto)) {
+        try {
+          const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+          session.student.photoUrl = signed.url;
+        } catch (error) {
+          console.error('Error generating presigned URL for session student:', error);
+          session.student.photoUrl = null;
+        }
+      } else {
+        session.student.photoUrl = sanitizedPhoto;
+      }
+    }
+    return session;
+  }
 
   private isSessionNoteTableMissing(error: unknown) {
     const err = error as { code?: string; message?: string };
@@ -195,7 +218,8 @@ export class MemorizationSessionsService {
       await this.updateStudentProgress(dto.studentId);
     }
 
-    return this.withNoteSummary(session);
+    const sessionWithSummary = this.withNoteSummary(session);
+    return this.mapStudentPhotoUrl(sessionWithSummary);
   }
 
   async findAll() {
@@ -203,7 +227,7 @@ export class MemorizationSessionsService {
       orderBy: {
         sessionDate: 'desc',
       },
-    }).then((items) => items.map((item) => this.withNoteSummary(item)));
+    }).then((items) => Promise.all(items.map((item) => this.mapStudentPhotoUrl(this.withNoteSummary(item)))));
   }
 
   async findByDate(
@@ -232,7 +256,7 @@ export class MemorizationSessionsService {
           createdAt: 'desc',
         },
       ],
-    }).then((items) => items.map((item) => this.withNoteSummary(item)));
+    }).then((items) => Promise.all(items.map((item) => this.mapStudentPhotoUrl(this.withNoteSummary(item)))));
   }
 
   async findOne(id: string) {
@@ -242,7 +266,8 @@ export class MemorizationSessionsService {
       throw new NotFoundException(`Session with ID ${id} not found`);
     }
 
-    return this.withNoteSummary(session);
+    const sessionWithSummary = this.withNoteSummary(session);
+    return this.mapStudentPhotoUrl(sessionWithSummary);
   }
 
   async findByStudent(studentId: string) {
@@ -251,7 +276,7 @@ export class MemorizationSessionsService {
       orderBy: {
         sessionDate: 'desc',
       },
-    }).then((items) => items.map((item) => this.withNoteSummary(item)));
+    }).then((items) => Promise.all(items.map((item) => this.mapStudentPhotoUrl(this.withNoteSummary(item)))));
   }
 
   async findByTeacher(teacherId: string, studentId?: string) {
@@ -263,7 +288,7 @@ export class MemorizationSessionsService {
       orderBy: {
         sessionDate: 'desc',
       },
-    }).then((items) => items.map((item) => this.withNoteSummary(item)));
+    }).then((items) => Promise.all(items.map((item) => this.mapStudentPhotoUrl(this.withNoteSummary(item)))));
   }
 
   async update(id: string, dto: UpdateSessionDto) {
@@ -332,7 +357,8 @@ export class MemorizationSessionsService {
       await this.updateStudentProgress(updatedSession.studentId);
     }
 
-    return this.withNoteSummary(updatedSession);
+    const sessionWithSummary = this.withNoteSummary(updatedSession);
+    return this.mapStudentPhotoUrl(sessionWithSummary);
   }
 
   async createNote(sessionId: string, dto: { noteType: SessionNoteType; page: number; line: number; description: string }) {

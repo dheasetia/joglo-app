@@ -17,6 +17,7 @@ export declare class DashboardController {
             sessionType: string;
             student: {
                 fullName: string;
+                photoUrl: string | null;
             };
             teacher: {
                 fullName: string;
@@ -30,6 +31,7 @@ export declare class DashboardController {
             examType: string;
             student: {
                 fullName: string;
+                photoUrl: string | null;
             };
             teacher: {
                 fullName: string;
@@ -46,6 +48,7 @@ export declare class DashboardController {
             sessionType: string;
             student: {
                 fullName: string;
+                photoUrl: string | null;
             };
             teacher: {
                 fullName: string;
@@ -59,6 +62,7 @@ export declare class DashboardController {
             examType: string;
             student: {
                 fullName: string;
+                photoUrl: string | null;
             };
             teacher: {
                 fullName: string;

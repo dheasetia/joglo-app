@@ -13,10 +13,33 @@ exports.MemorizationExamsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const client_1 = require("@prisma/client");
+const storage_service_1 = require("../storage/storage.service");
+const photo_url_util_1 = require("../common/photo-url.util");
 let MemorizationExamsService = class MemorizationExamsService {
     prisma;
-    constructor(prisma) {
+    storageService;
+    constructor(prisma, storageService) {
         this.prisma = prisma;
+        this.storageService = storageService;
+    }
+    async mapStudentPhotoUrl(exam) {
+        if (exam?.student?.photoUrl) {
+            const sanitizedPhoto = (0, photo_url_util_1.sanitizePhotoUrl)(exam.student.photoUrl);
+            if (sanitizedPhoto && !/^https?:\/\//i.test(sanitizedPhoto)) {
+                try {
+                    const signed = await this.storageService.createPresignedDownloadUrl(sanitizedPhoto);
+                    exam.student.photoUrl = signed.url;
+                }
+                catch (error) {
+                    console.error('Error generating presigned URL for exam student:', error);
+                    exam.student.photoUrl = null;
+                }
+            }
+            else {
+                exam.student.photoUrl = sanitizedPhoto;
+            }
+        }
+        return exam;
     }
     isExamNoteSchemaNotReady(error) {
         if (!(error instanceof Error)) {
@@ -96,7 +119,8 @@ let MemorizationExamsService = class MemorizationExamsService {
                 data: { currentPage: exam.endPage }
             });
         }
-        return this.withNoteSummary(exam);
+        const examWithSummary = this.withNoteSummary(exam);
+        return this.mapStudentPhotoUrl(examWithSummary);
     }
     async findAll() {
         let exams;
@@ -130,7 +154,7 @@ let MemorizationExamsService = class MemorizationExamsService {
                 },
             });
         }
-        return exams.map((exam) => this.withNoteSummary(exam));
+        return Promise.all(exams.map((exam) => this.mapStudentPhotoUrl(this.withNoteSummary(exam))));
     }
     async findOne(id) {
         let exam;
@@ -163,7 +187,8 @@ let MemorizationExamsService = class MemorizationExamsService {
         if (!exam) {
             throw new common_1.NotFoundException(`Exam with ID ${id} not found`);
         }
-        return this.withNoteSummary(exam);
+        const examWithSummary = this.withNoteSummary(exam);
+        return this.mapStudentPhotoUrl(examWithSummary);
     }
     async findByStudent(studentId) {
         let exams;
@@ -197,7 +222,7 @@ let MemorizationExamsService = class MemorizationExamsService {
                 },
             });
         }
-        return exams.map((exam) => this.withNoteSummary(exam));
+        return Promise.all(exams.map((exam) => this.mapStudentPhotoUrl(this.withNoteSummary(exam))));
     }
     async update(id, dto) {
         const oldExam = await this.findOne(id);
@@ -251,7 +276,8 @@ let MemorizationExamsService = class MemorizationExamsService {
                 data: { currentPage: updatedExam.endPage }
             });
         }
-        return this.withNoteSummary(updatedExam);
+        const examWithSummary = this.withNoteSummary(updatedExam);
+        return this.mapStudentPhotoUrl(examWithSummary);
     }
     async createNote(user, examId, dto) {
         const exam = await this.prisma.memorizationExam.findUnique({
@@ -367,6 +393,7 @@ let MemorizationExamsService = class MemorizationExamsService {
 exports.MemorizationExamsService = MemorizationExamsService;
 exports.MemorizationExamsService = MemorizationExamsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        storage_service_1.StorageService])
 ], MemorizationExamsService);
 //# sourceMappingURL=memorization-exams.service.js.map
