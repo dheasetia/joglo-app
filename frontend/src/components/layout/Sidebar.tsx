@@ -25,11 +25,15 @@ const Sidebar: React.FC = () => {
     <div className="hidden md:flex flex-col h-full bg-primary text-white w-64 shadow-xl">
       <div className="p-6">
         <Link to="/" className="text-xl font-bold flex items-center gap-2">
-          <img
-            src="/joglo_icon.png"
-            alt="Tahmis"
-            className="h-8 w-8 rounded-full object-cover"
-          />
+          {resolvePhotoUrl('/joglo_icon.png') ? (
+            <img
+              src={resolvePhotoUrl('/joglo_icon.png')!}
+              alt="Tahmis"
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center text-primary font-bold text-xs">T</div>
+          )}
           <span>Tahmis</span>
         </Link>
       </div>
@@ -61,15 +65,15 @@ const Sidebar: React.FC = () => {
 
       <div className="p-4 border-t border-[#633041]">
         <div className="flex items-center gap-3 px-3 py-2 mb-4">
-          {user?.photoUrl ? (
+          {resolvePhotoUrl(user?.photoUrl) ? (
             <img
-              src={resolvePhotoUrl(user.photoUrl)}
-              alt={user.name}
+              src={resolvePhotoUrl(user?.photoUrl)!}
+              alt={user?.name}
               className="h-10 w-10 rounded-full object-cover border border-white/30"
             />
           ) : (
             <div className="h-10 w-10 rounded-full bg-accent flex items-center justify-center text-primary font-bold">
-              {user?.name.charAt(0)}
+              {user?.name?.charAt(0)}
             </div>
           )}
           <div className="overflow-hidden">

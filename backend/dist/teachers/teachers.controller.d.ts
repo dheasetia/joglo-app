@@ -14,14 +14,14 @@ export declare class TeachersController {
             halaqahs: number;
         };
     } & {
-        id: string;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         fullName: string;
         phone: string | null;
         notes: string | null;
-        userId: string;
     })[]>;
     findOne(id: string, user: any): Promise<{
         user: {
@@ -30,41 +30,41 @@ export declare class TeachersController {
         };
         halaqahs: {
             name: string;
-            id: string;
             isActive: boolean;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
             teacherId: string;
         }[];
     } & {
-        id: string;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         fullName: string;
         phone: string | null;
         notes: string | null;
-        userId: string;
     }>;
     update(id: string, dto: UpdateTeacherDto, user: any): Promise<{
-        id: string;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         fullName: string;
         phone: string | null;
         notes: string | null;
-        userId: string;
     }>;
     remove(id: string): Promise<{
-        id: string;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         fullName: string;
         phone: string | null;
         notes: string | null;
-        userId: string;
     }>;
 }

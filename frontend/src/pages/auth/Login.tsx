@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
 import { AuthResponse } from '../../types';
+import { resolvePhotoUrl } from '../../utils/resolvePhotoUrl';
 import { Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
@@ -37,11 +38,15 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
         <div>
           <div className="flex justify-center">
-            <img
-              src="/tahmis.png"
-              alt="Tahmis"
-              className="h-16 object-cover"
-            />
+            {resolvePhotoUrl('/tahmis.png') ? (
+              <img
+                src={resolvePhotoUrl('/tahmis.png')!}
+                alt="Tahmis"
+                className="h-16 object-cover"
+              />
+            ) : (
+              <div className="h-16 w-16 bg-primary/10 rounded flex items-center justify-center text-primary font-bold">T</div>
+            )}
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">TAHMIS</h2>
           <p className="mt-2 text-center text-sm text-gray-600">

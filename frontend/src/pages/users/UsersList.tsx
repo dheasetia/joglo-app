@@ -198,15 +198,15 @@ const UsersList: React.FC = () => {
                 <tr key={u.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      {u.photoUrl ? (
+                      {resolvePhotoUrl(u.photoUrl) ? (
                         <img
-                          src={resolvePhotoUrl(u.photoUrl)}
+                          src={resolvePhotoUrl(u.photoUrl)!}
                           alt={u.name}
                           className="w-8 h-8 rounded-full object-cover"
                         />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                          {u.name.charAt(0)}
+                          {u.name?.charAt(0)}
                         </div>
                       )}
                       <div className="font-semibold text-gray-900">{u.name}</div>
@@ -271,7 +271,7 @@ const UsersList: React.FC = () => {
               }}
             />
             {photoPreview && (
-              <img src={photoPreview} alt="Preview" className="mt-2 w-16 h-16 rounded-full object-cover border" />
+              <img src={photoPreview || undefined} alt="Preview" className="mt-2 w-16 h-16 rounded-full object-cover border" />
             )}
           </div>
           <div>

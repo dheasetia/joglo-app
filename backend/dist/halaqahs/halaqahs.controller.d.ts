@@ -10,12 +10,12 @@ export declare class HalaqahsController {
     findOne(id: string): Promise<any>;
     update(id: string, updateHalaqahDto: UpdateHalaqahDto, user: any): Promise<any>;
     remove(id: string): Promise<{
-        id: string;
         name: string;
-        description: string | null;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        description: string | null;
         teacherId: string;
     }>;
 }

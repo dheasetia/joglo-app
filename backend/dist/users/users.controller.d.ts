@@ -28,12 +28,12 @@ export declare class UsersController {
         } | null | undefined;
     }>;
     findAll(): Promise<{
-        email: string;
         name: string;
+        email: string;
         role: import("@prisma/client").$Enums.UserRole;
-        id: string;
-        photoUrl: string | null;
         isActive: boolean;
+        photoUrl: string | null;
+        id: string;
         createdAt: Date;
     }[]>;
     create(dto: CreateUserDto, file?: any): Promise<{

@@ -269,9 +269,9 @@ const StudentDetail: React.FC = () => {
       {/* Header & Profil Ringkas */}
       <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
         <div className="relative group">
-          {student.photoUrl ? (
+          {resolvePhotoUrl(student.photoUrl) ? (
             <img 
-              src={resolvePhotoUrl(student.photoUrl)} 
+              src={resolvePhotoUrl(student.photoUrl)!} 
               alt={student.fullName} 
               className="w-32 h-32 md:w-40 md:h-40 rounded-2xl object-cover border-4 border-white shadow-lg"
             />

@@ -67,9 +67,9 @@ const HalaqahReport: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
           <div className="w-12 h-12 bg-primary/10 text-primary rounded-lg flex items-center justify-center overflow-hidden border border-gray-50">
-            {halaqah.teacher?.user?.photoUrl && resolvePhotoUrl(halaqah.teacher.user.photoUrl) ? (
+            {resolvePhotoUrl(halaqah.teacher?.user?.photoUrl) ? (
               <img 
-                src={resolvePhotoUrl(halaqah.teacher.user.photoUrl)} 
+                src={resolvePhotoUrl(halaqah.teacher?.user?.photoUrl)!} 
                 alt={halaqah.teacher?.fullName || 'Muhaffizh'} 
                 className="w-full h-full object-cover"
               />
@@ -84,9 +84,9 @@ const HalaqahReport: React.FC = () => {
         </div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
           <div className="w-12 h-12 bg-accent/20 text-primary rounded-lg flex items-center justify-center overflow-hidden">
-            {halaqah.teacher?.user?.photoUrl && resolvePhotoUrl(halaqah.teacher.user.photoUrl) ? (
+            {resolvePhotoUrl(halaqah.teacher?.user?.photoUrl) ? (
               <img 
-                src={resolvePhotoUrl(halaqah.teacher.user.photoUrl)} 
+                src={resolvePhotoUrl(halaqah.teacher?.user?.photoUrl)!} 
                 alt={halaqah.teacher?.fullName || 'Muhaffizh'} 
                 className="w-full h-full object-cover"
               />
@@ -137,9 +137,9 @@ const HalaqahReport: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200">
-                          {student.photoUrl && resolvePhotoUrl(student.photoUrl) ? (
+                          {resolvePhotoUrl(student.photoUrl) ? (
                             <img 
-                              src={resolvePhotoUrl(student.photoUrl)} 
+                              src={resolvePhotoUrl(student.photoUrl)!} 
                               alt={student.fullName} 
                               className="w-full h-full object-cover"
                             />

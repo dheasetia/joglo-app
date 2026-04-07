@@ -15,20 +15,20 @@ export declare class MemorizationSessionsController {
     removeNote(user: any, id: string, noteId: string): Promise<any>;
     update(user: any, id: string, updateSessionDto: UpdateSessionDto): Promise<any>;
     remove(user: any, id: string): Promise<{
-        sessionDate: Date;
         id: string;
-        sessionType: import("@prisma/client").$Enums.SessionType;
-        studentId: string;
-        teacherId: string;
-        halaqahId: string;
-        startPage: number | null;
-        endPage: number | null;
-        totalPages: number | null;
-        score: number;
-        notes: string | null;
-        recommendation: import("@prisma/client").$Enums.Recommendation;
-        isApprovedForNextStep: boolean | null;
         createdAt: Date;
         updatedAt: Date;
+        notes: string | null;
+        teacherId: string;
+        halaqahId: string;
+        sessionDate: Date;
+        sessionType: import("@prisma/client").$Enums.SessionType;
+        studentId: string;
+        startPage: number | null;
+        endPage: number | null;
+        score: number;
+        recommendation: import("@prisma/client").$Enums.Recommendation;
+        isApprovedForNextStep: boolean | null;
+        totalPages: number | null;
     }>;
 }

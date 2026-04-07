@@ -42,7 +42,8 @@ export class UpdatePasswordDto {
 
 export class UpdateMyPasswordDto {
   @IsString()
-  currentPassword: string;
+  @IsOptional()
+  currentPassword?: string;
 
   @IsString()
   @MinLength(6)

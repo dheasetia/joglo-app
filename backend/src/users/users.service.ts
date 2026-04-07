@@ -294,7 +294,7 @@ export class UsersService {
 
       updated = { ...fallbackUpdated, photoUrl: null };
     }
-    return updated;
+    return this.mapPhotoUrl(updated);
   }
 
   async updatePassword(id: string, dto: UpdatePasswordDto) {
@@ -312,9 +312,11 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const isCurrentPasswordValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
-    if (!isCurrentPasswordValid) {
-      throw new BadRequestException('Password saat ini tidak sesuai');
+    if (dto.currentPassword) {
+      const isCurrentPasswordValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+      if (!isCurrentPasswordValid) {
+        throw new BadRequestException('Password saat ini tidak sesuai');
+      }
     }
 
     const passwordHash = await bcrypt.hash(dto.newPassword, 10);

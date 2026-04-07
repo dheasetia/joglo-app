@@ -39,21 +39,21 @@ export declare class MemorizationSessionsService {
     }): Promise<any>;
     removeNote(sessionId: string, noteId: string): Promise<any>;
     remove(id: string, requesterRole: UserRole, teacherId?: string): Promise<{
-        sessionDate: Date;
         id: string;
-        sessionType: import("@prisma/client").$Enums.SessionType;
-        studentId: string;
-        teacherId: string;
-        halaqahId: string;
-        startPage: number | null;
-        endPage: number | null;
-        totalPages: number | null;
-        score: number;
-        notes: string | null;
-        recommendation: import("@prisma/client").$Enums.Recommendation;
-        isApprovedForNextStep: boolean | null;
         createdAt: Date;
         updatedAt: Date;
+        notes: string | null;
+        teacherId: string;
+        halaqahId: string;
+        sessionDate: Date;
+        sessionType: import("@prisma/client").$Enums.SessionType;
+        studentId: string;
+        startPage: number | null;
+        endPage: number | null;
+        score: number;
+        recommendation: import("@prisma/client").$Enums.Recommendation;
+        isApprovedForNextStep: boolean | null;
+        totalPages: number | null;
     }>;
     private updateStudentProgress;
 }

@@ -225,7 +225,7 @@ const TeacherList: React.FC = () => {
               }}
             />
             {photoPreview && (
-              <img src={resolvePhotoUrl(photoPreview)} alt="Preview" className="mt-2 h-14 w-14 rounded-full object-cover border" />
+              <img src={photoPreview || undefined} alt="Preview" className="mt-2 h-14 w-14 rounded-full object-cover border" />
             )}
           </div>
           <div>
@@ -338,13 +338,13 @@ const TeacherList: React.FC = () => {
                       <div className="flex items-center">
                         {resolvePhotoUrl(muhaffizh.photoUrl) ? (
                           <img
-                            src={resolvePhotoUrl(muhaffizh.photoUrl)}
+                            src={resolvePhotoUrl(muhaffizh.photoUrl)!}
                             alt={muhaffizh.name}
                             className="h-10 w-10 rounded-full object-cover"
                           />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                            {muhaffizh.name.charAt(0)}
+                            {muhaffizh.name?.charAt(0)}
                           </div>
                         )}
                         <div className="ml-4">

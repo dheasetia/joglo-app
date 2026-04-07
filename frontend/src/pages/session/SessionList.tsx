@@ -575,16 +575,11 @@ const SessionList: React.FC = () => {
                 <div className="flex items-start gap-4 flex-1">
                   <div className="flex-shrink-0">
                     <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
-                      {session.student?.photoUrl ? (
+                      {resolvePhotoUrl(session.student?.photoUrl) ? (
                         <img 
-                          src={resolvePhotoUrl(session.student.photoUrl)} 
-                          alt={session.student.fullName} 
+                          src={resolvePhotoUrl(session.student?.photoUrl)!} 
+                          alt={session.student?.fullName || 'Santri'} 
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '';
-                            (e.target as HTMLImageElement).className = 'hidden';
-                            (e.target as HTMLImageElement).parentElement?.classList.add('bg-primary/10');
-                          }}
                         />
                       ) : (
                         <User className="text-gray-400" size={24} />
@@ -598,6 +593,7 @@ const SessionList: React.FC = () => {
                   <div>
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <h3 className="font-bold text-gray-900">{session.student?.fullName}</h3>
+                      <p className="text-xs text-gray-500 font-medium">{session.student?.level || '-'} - Kelas {session.student?.className || '-'}</p>
                       {getSessionTypeBadge(session.sessionType)}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">

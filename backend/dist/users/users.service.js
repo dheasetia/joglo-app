@@ -284,7 +284,7 @@ let UsersService = class UsersService {
             });
             updated = { ...fallbackUpdated, photoUrl: null };
         }
-        return updated;
+        return this.mapPhotoUrl(updated);
     }
     async updatePassword(id, dto) {
         const user = await this.prisma.user.findUnique({ where: { id } });
@@ -301,9 +301,11 @@ let UsersService = class UsersService {
         });
         if (!user)
             throw new common_1.NotFoundException('User not found');
-        const isCurrentPasswordValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
-        if (!isCurrentPasswordValid) {
-            throw new common_1.BadRequestException('Password saat ini tidak sesuai');
+        if (dto.currentPassword) {
+            const isCurrentPasswordValid = await bcrypt.compare(dto.currentPassword, user.passwordHash);
+            if (!isCurrentPasswordValid) {
+                throw new common_1.BadRequestException('Password saat ini tidak sesuai');
+            }
         }
         const passwordHash = await bcrypt.hash(dto.newPassword, 10);
         await this.prisma.user.update({ where: { id }, data: { passwordHash } });

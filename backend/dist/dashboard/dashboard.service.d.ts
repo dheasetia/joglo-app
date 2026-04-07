@@ -22,6 +22,8 @@ export declare class DashboardService {
             student: {
                 fullName: string;
                 photoUrl: string | null;
+                level: string | null;
+                className: string | null;
             };
             teacher: {
                 fullName: string;
@@ -36,6 +38,8 @@ export declare class DashboardService {
             student: {
                 fullName: string;
                 photoUrl: string | null;
+                level: string | null;
+                className: string | null;
             };
             teacher: {
                 fullName: string;
@@ -54,6 +58,8 @@ export declare class DashboardService {
             student: {
                 fullName: string;
                 photoUrl: string | null;
+                level: string | null;
+                className: string | null;
             };
             teacher: {
                 fullName: string;
@@ -68,6 +74,8 @@ export declare class DashboardService {
             student: {
                 fullName: string;
                 photoUrl: string | null;
+                level: string | null;
+                className: string | null;
             };
             teacher: {
                 fullName: string;

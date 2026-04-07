@@ -420,6 +420,7 @@ const ExamList: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
                         <div className="text-sm font-medium text-gray-900">{exam.student?.fullName}</div>
+                        <div className="text-[10px] text-gray-400 mt-0.5">{exam.student?.level || '-'} - Kelas {exam.student?.className || '-'}</div>
                         <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                           <Calendar size={12} /> {new Date(exam.examDate).toLocaleDateString('id-ID')}
                         </div>

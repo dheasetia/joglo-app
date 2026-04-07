@@ -316,7 +316,7 @@ const StudentList: React.FC = () => {
             />
             {photoPreview && (
               <img
-                src={photoPreview}
+                src={photoPreview || undefined}
                 alt="Preview santri"
                 className="mt-2 h-16 w-16 rounded-full object-cover border"
               />
@@ -513,15 +513,15 @@ const StudentList: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          {student.photoUrl ? (
+                          {resolvePhotoUrl(student.photoUrl) ? (
                             <img
-                              src={resolvePhotoUrl(student.photoUrl)}
+                              src={resolvePhotoUrl(student.photoUrl)!}
                               alt={student.fullName}
                               className="flex-shrink-0 h-10 w-10 rounded-full object-cover"
                             />
                           ) : (
                             <div className="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                              {student.fullName.charAt(0)}
+                              {student.fullName?.charAt(0)}
                             </div>
                           )}
                           <div className="ml-4">

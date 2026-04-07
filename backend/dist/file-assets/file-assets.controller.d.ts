@@ -7,14 +7,14 @@ export declare class FileAssetsController {
     constructor(fileAssetsService: FileAssetsService);
     createPresignedUploadUrl(dto: CreatePresignedUploadUrlDto, req: any): Promise<import("../storage/storage.types").PresignedUploadResult>;
     createMetadata(dto: CreateFileAssetDto, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         originalName: string;
         size: number;
         key: string;
         visibility: import("@prisma/client").$Enums.FileVisibility;
         bucket: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         studentId: string | null;
         module: string;
         tenantId: string;
@@ -31,14 +31,14 @@ export declare class FileAssetsController {
         visibility: import("@prisma/client").$Enums.FileVisibility;
     }>;
     remove(id: string, req: any): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         originalName: string;
         size: number;
         key: string;
         visibility: import("@prisma/client").$Enums.FileVisibility;
         bucket: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         studentId: string | null;
         module: string;
         tenantId: string;

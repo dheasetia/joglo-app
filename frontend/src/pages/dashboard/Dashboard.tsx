@@ -192,9 +192,9 @@ const Dashboard: React.FC = () => {
                 <Link key={idx} to={`/session/${session.id}`} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0 hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors group">
                   <div className="flex items-center gap-3 flex-1">
                     <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200">
-                      {session.student?.photoUrl && resolvePhotoUrl(session.student.photoUrl) ? (
+                      {resolvePhotoUrl(session.student?.photoUrl) ? (
                         <img 
-                          src={resolvePhotoUrl(session.student.photoUrl)} 
+                          src={resolvePhotoUrl(session.student?.photoUrl)!} 
                           alt={session.student?.fullName || 'Santri'} 
                           className="w-full h-full object-cover"
                         />
@@ -204,11 +204,10 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors line-clamp-1">{session.student?.fullName}</p>
+                      <p className="text-[10px] text-gray-500 font-semibold mb-0.5">
+                        {session.student?.level || '-'} - Kelas {session.student?.className || '-'}
+                      </p>
                       <p className="text-[10px] text-gray-500 flex items-center gap-1">
-                        {session.student?.level && session.student?.className 
-                          ? `${session.student.level} - Kelas ${session.student.className}` 
-                          : (session.student?.level || session.student?.className || '-')}
-                        <span className="text-gray-300 mx-1">•</span>
                         {formatUstadzName(session.teacher?.fullName)}
                       </p>
                       <p className={`inline-flex mt-1 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full tracking-wide ${getSessionTypeBadgeClass(session.sessionType)}`}>
@@ -242,9 +241,9 @@ const Dashboard: React.FC = () => {
                 <Link key={idx} to={`/exam/${exam.id}`} className="flex items-center justify-between border-b border-gray-100 pb-3 last:border-0 last:pb-0 hover:bg-gray-50 -mx-2 px-2 rounded-lg transition-colors group">
                   <div className="flex items-center gap-3 flex-1">
                     <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200">
-                      {exam.student?.photoUrl && resolvePhotoUrl(exam.student.photoUrl) ? (
+                      {resolvePhotoUrl(exam.student?.photoUrl) ? (
                         <img 
-                          src={resolvePhotoUrl(exam.student.photoUrl)} 
+                          src={resolvePhotoUrl(exam.student?.photoUrl)!} 
                           alt={exam.student?.fullName || 'Santri'} 
                           className="w-full h-full object-cover"
                         />
@@ -254,11 +253,10 @@ const Dashboard: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900 group-hover:text-primary transition-colors line-clamp-1">{exam.student?.fullName}</p>
+                      <p className="text-[10px] text-gray-500 font-semibold mb-0.5">
+                        {exam.student?.level || '-'} - Kelas {exam.student?.className || '-'}
+                      </p>
                       <p className="text-[10px] text-gray-500 flex items-center gap-1">
-                        {exam.student?.level && exam.student?.className 
-                          ? `${exam.student.level} - Kelas ${exam.student.className}` 
-                          : (exam.student?.level || exam.student?.className || '-')}
-                        <span className="text-gray-300 mx-1">•</span>
                         {formatUstadzName(exam.teacher?.fullName)}
                       </p>
                       <p className={`inline-flex mt-1 text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full tracking-wide ${getExamTypeBadgeClass(exam.examType)}`}>

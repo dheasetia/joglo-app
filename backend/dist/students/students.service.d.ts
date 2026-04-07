@@ -10,108 +10,112 @@ export declare class StudentsService {
     create(dto: CreateStudentDto): Promise<{
         halaqah: {
             teacher: {
-                id: string;
-                fullName: string;
                 isActive: boolean;
+                id: string;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                fullName: string;
                 phone: string | null;
                 notes: string | null;
             };
         } & {
-            id: string;
+            name: string;
             isActive: boolean;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
             description: string | null;
             teacherId: string;
         };
     } & {
-        id: string;
-        nis: string | null;
-        fullName: string;
+        isActive: boolean;
         photoUrl: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        fullName: string;
+        nis: string | null;
         gender: import("@prisma/client").$Enums.Gender;
         level: string | null;
         className: string | null;
-        isActive: boolean;
+        halaqahId: string;
         currentJuz: number;
         currentPage: number | null;
         lastMemorizedPage: number | null;
         totalMemorizedPages: number;
-        createdAt: Date;
-        updatedAt: Date;
-        halaqahId: string;
     }>;
     findAll(): Promise<({
         halaqah: {
             teacher: {
-                id: string;
-                fullName: string;
                 isActive: boolean;
+                id: string;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                fullName: string;
                 phone: string | null;
                 notes: string | null;
             };
         } & {
-            id: string;
+            name: string;
             isActive: boolean;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
             description: string | null;
             teacherId: string;
         };
     } & {
-        id: string;
-        nis: string | null;
-        fullName: string;
+        isActive: boolean;
         photoUrl: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        fullName: string;
+        nis: string | null;
         gender: import("@prisma/client").$Enums.Gender;
         level: string | null;
         className: string | null;
-        isActive: boolean;
+        halaqahId: string;
         currentJuz: number;
         currentPage: number | null;
         lastMemorizedPage: number | null;
         totalMemorizedPages: number;
-        createdAt: Date;
-        updatedAt: Date;
-        halaqahId: string;
     })[]>;
     findOne(id: string): Promise<{
         halaqah: {
             teacher: {
-                id: string;
-                fullName: string;
                 isActive: boolean;
+                id: string;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                fullName: string;
                 phone: string | null;
                 notes: string | null;
             };
         } & {
-            id: string;
+            name: string;
             isActive: boolean;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
             description: string | null;
             teacherId: string;
         };
+        _count: {
+            sessions: number;
+            exams: number;
+        };
         sessions: ({
             teacher: {
-                id: string;
-                fullName: string;
                 isActive: boolean;
+                id: string;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                fullName: string;
                 phone: string | null;
                 notes: string | null;
             };
@@ -119,27 +123,27 @@ export declare class StudentsService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            halaqahId: string;
-            teacherId: string;
             notes: string | null;
+            teacherId: string;
+            halaqahId: string;
             sessionDate: Date;
             sessionType: import("@prisma/client").$Enums.SessionType;
             studentId: string;
             startPage: number | null;
             endPage: number | null;
-            totalPages: number | null;
             score: number;
             recommendation: import("@prisma/client").$Enums.Recommendation;
             isApprovedForNextStep: boolean | null;
+            totalPages: number | null;
         })[];
         exams: ({
             teacher: {
-                id: string;
-                fullName: string;
                 isActive: boolean;
+                id: string;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                fullName: string;
                 phone: string | null;
                 notes: string | null;
             };
@@ -147,9 +151,9 @@ export declare class StudentsService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            halaqahId: string;
-            teacherId: string;
             notes: string | null;
+            teacherId: string;
+            halaqahId: string;
             examDate: Date;
             studentId: string;
             startPage: number | null;
@@ -158,151 +162,147 @@ export declare class StudentsService {
             recommendation: import("@prisma/client").$Enums.Recommendation;
             examType: import("@prisma/client").$Enums.ExamType;
             title: string | null;
-            startJuz: number | null;
-            endJuz: number | null;
             periodStart: Date | null;
             periodEnd: Date | null;
             resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+            startJuz: number | null;
+            endJuz: number | null;
         })[];
-        _count: {
-            sessions: number;
-            exams: number;
-        };
     } & {
-        id: string;
-        nis: string | null;
-        fullName: string;
+        isActive: boolean;
         photoUrl: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        fullName: string;
+        nis: string | null;
         gender: import("@prisma/client").$Enums.Gender;
         level: string | null;
         className: string | null;
-        isActive: boolean;
+        halaqahId: string;
         currentJuz: number;
         currentPage: number | null;
         lastMemorizedPage: number | null;
         totalMemorizedPages: number;
-        createdAt: Date;
-        updatedAt: Date;
-        halaqahId: string;
     }>;
     findByHalaqah(halaqahId: string): Promise<({
         halaqah: {
             teacher: {
-                id: string;
-                fullName: string;
                 isActive: boolean;
+                id: string;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                fullName: string;
                 phone: string | null;
                 notes: string | null;
             };
         } & {
-            id: string;
+            name: string;
             isActive: boolean;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
             description: string | null;
             teacherId: string;
         };
     } & {
-        id: string;
-        nis: string | null;
-        fullName: string;
+        isActive: boolean;
         photoUrl: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        fullName: string;
+        nis: string | null;
         gender: import("@prisma/client").$Enums.Gender;
         level: string | null;
         className: string | null;
-        isActive: boolean;
+        halaqahId: string;
         currentJuz: number;
         currentPage: number | null;
         lastMemorizedPage: number | null;
         totalMemorizedPages: number;
-        createdAt: Date;
-        updatedAt: Date;
-        halaqahId: string;
     })[]>;
     findByHalaqahIds(halaqahIds: string[]): Promise<({
         halaqah: {
             teacher: {
-                id: string;
-                fullName: string;
                 isActive: boolean;
+                id: string;
                 createdAt: Date;
                 updatedAt: Date;
                 userId: string;
+                fullName: string;
                 phone: string | null;
                 notes: string | null;
             };
         } & {
-            id: string;
+            name: string;
             isActive: boolean;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
             description: string | null;
             teacherId: string;
         };
     } & {
-        id: string;
-        nis: string | null;
-        fullName: string;
+        isActive: boolean;
         photoUrl: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        fullName: string;
+        nis: string | null;
         gender: import("@prisma/client").$Enums.Gender;
         level: string | null;
         className: string | null;
-        isActive: boolean;
+        halaqahId: string;
         currentJuz: number;
         currentPage: number | null;
         lastMemorizedPage: number | null;
         totalMemorizedPages: number;
-        createdAt: Date;
-        updatedAt: Date;
-        halaqahId: string;
     })[]>;
     update(id: string, dto: UpdateStudentDto): Promise<{
         halaqah: {
-            id: string;
+            name: string;
             isActive: boolean;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
-            name: string;
             description: string | null;
             teacherId: string;
         };
     } & {
-        id: string;
-        nis: string | null;
-        fullName: string;
+        isActive: boolean;
         photoUrl: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        fullName: string;
+        nis: string | null;
         gender: import("@prisma/client").$Enums.Gender;
         level: string | null;
         className: string | null;
-        isActive: boolean;
+        halaqahId: string;
         currentJuz: number;
         currentPage: number | null;
         lastMemorizedPage: number | null;
         totalMemorizedPages: number;
-        createdAt: Date;
-        updatedAt: Date;
-        halaqahId: string;
     }>;
     remove(id: string): Promise<{
-        id: string;
-        nis: string | null;
-        fullName: string;
+        isActive: boolean;
         photoUrl: string | null;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        fullName: string;
+        nis: string | null;
         gender: import("@prisma/client").$Enums.Gender;
         level: string | null;
         className: string | null;
-        isActive: boolean;
+        halaqahId: string;
         currentJuz: number;
         currentPage: number | null;
         lastMemorizedPage: number | null;
         totalMemorizedPages: number;
-        createdAt: Date;
-        updatedAt: Date;
-        halaqahId: string;
     }>;
 }

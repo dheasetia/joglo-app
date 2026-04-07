@@ -3,12 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
+    private usersService: UsersService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -37,6 +39,7 @@ export class AuthService {
         email: true,
         role: true,
         name: true,
+        photoUrl: true,
       },
     });
 
@@ -50,7 +53,8 @@ export class AuthService {
       });
     }
 
-    return this.signToken(user.id, user.email, user.role, user.name, null);
+    const mappedUser = await this.usersService.getMe(user.id);
+    return this.signToken(mappedUser.id, mappedUser.email, mappedUser.role, mappedUser.name, mappedUser.photoUrl);
   }
 
   async login(dto: LoginDto) {
@@ -63,6 +67,7 @@ export class AuthService {
         email: true,
         role: true,
         name: true,
+        photoUrl: true,
         passwordHash: true,
       },
     });
@@ -77,7 +82,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.signToken(user.id, user.email, user.role, user.name, null);
+    const mappedUser = await this.usersService.getMe(user.id);
+    return this.signToken(mappedUser.id, mappedUser.email, mappedUser.role, mappedUser.name, mappedUser.photoUrl);
   }
 
   async signToken(userId: string, email: string, role: string, name: string, photoUrl?: string | null) {

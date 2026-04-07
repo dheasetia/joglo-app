@@ -1,10 +1,12 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { UsersService } from '../users/users.service';
 export declare class AuthService {
     private prisma;
     private jwt;
-    constructor(prisma: PrismaService, jwt: JwtService);
+    private usersService;
+    constructor(prisma: PrismaService, jwt: JwtService, usersService: UsersService);
     register(dto: RegisterDto): Promise<{
         access_token: string;
         user: {

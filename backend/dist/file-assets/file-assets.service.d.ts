@@ -17,14 +17,14 @@ export declare class FileAssetsService {
         id: string;
         role: UserRole;
     }): Promise<{
-        id: string;
-        createdAt: Date;
-        updatedAt: Date;
         originalName: string;
         size: number;
         key: string;
         visibility: import("@prisma/client").$Enums.FileVisibility;
         bucket: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
         studentId: string | null;
         module: string;
         tenantId: string;

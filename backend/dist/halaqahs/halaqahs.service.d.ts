@@ -12,12 +12,12 @@ export declare class HalaqahsService {
     findByTeacher(teacherId: string): Promise<any[]>;
     update(id: string, dto: UpdateHalaqahDto): Promise<any>;
     remove(id: string): Promise<{
-        id: string;
         name: string;
-        description: string | null;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        description: string | null;
         teacherId: string;
     }>;
 }

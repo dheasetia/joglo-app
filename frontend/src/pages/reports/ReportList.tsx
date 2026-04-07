@@ -135,9 +135,9 @@ const ReportList: React.FC = () => {
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full overflow-hidden border border-gray-100 flex items-center justify-center bg-gray-50 text-primary">
-                      {halaqah.teacher?.user?.photoUrl && resolvePhotoUrl(halaqah.teacher.user.photoUrl) ? (
+                      {resolvePhotoUrl(halaqah.teacher?.user?.photoUrl) ? (
                         <img 
-                          src={resolvePhotoUrl(halaqah.teacher.user.photoUrl)} 
+                          src={resolvePhotoUrl(halaqah.teacher?.user?.photoUrl)!} 
                           alt={halaqah.teacher?.fullName || 'Muhaffizh'} 
                           className="w-full h-full object-cover"
                         />
@@ -179,9 +179,9 @@ const ReportList: React.FC = () => {
                   className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors group"
                 >
                   <div className="flex items-center gap-4">
-                    {student.photoUrl && resolvePhotoUrl(student.photoUrl) ? (
+                    {resolvePhotoUrl(student.photoUrl) ? (
                       <img 
-                        src={resolvePhotoUrl(student.photoUrl)} 
+                        src={resolvePhotoUrl(student.photoUrl)!} 
                         alt={student.fullName}
                         className="w-12 h-12 rounded-full object-cover border border-gray-100"
                       />
@@ -195,7 +195,10 @@ const ReportList: React.FC = () => {
                         {student.fullName}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        {student.level && student.className ? `${student.level} - Kelas ${student.className}` : (student.level || student.className || '-')} • Halaqah: {student.halaqah?.name || '-'}
+                        {student.level || '-'} - Kelas {student.className || '-'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Halaqah: {student.halaqah?.name || '-'}
                       </p>
                     </div>
                   </div>
@@ -220,9 +223,9 @@ const ReportList: React.FC = () => {
                   className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors group border-b last:border-0"
                 >
                   <div className="flex items-center gap-4">
-                    {exam.student?.photoUrl && resolvePhotoUrl(exam.student.photoUrl) ? (
+                    {resolvePhotoUrl(exam.student?.photoUrl) ? (
                       <img 
-                        src={resolvePhotoUrl(exam.student.photoUrl)} 
+                        src={resolvePhotoUrl(exam.student?.photoUrl)!} 
                         alt={exam.student?.fullName || 'Santri'}
                         className="w-12 h-12 rounded-full object-cover border border-gray-100"
                       />
@@ -235,7 +238,10 @@ const ReportList: React.FC = () => {
                       <h3 className="font-semibold text-gray-900">
                         {exam.student?.fullName}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {exam.student?.level || '-'} - Kelas {exam.student?.className || '-'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
                         {getExamTypeLabel(exam.examType)} • {new Date(exam.examDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     </div>

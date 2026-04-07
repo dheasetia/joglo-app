@@ -68,9 +68,9 @@ const StudentReport: React.FC = () => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
           <div className="flex flex-col items-center text-center space-y-2">
             <div className="w-24 h-24 rounded-full bg-accent/20 flex items-center justify-center text-primary overflow-hidden border-2 border-primary/10">
-              {student.photoUrl && resolvePhotoUrl(student.photoUrl) ? (
+              {resolvePhotoUrl(student.photoUrl) ? (
                 <img 
-                  src={resolvePhotoUrl(student.photoUrl)} 
+                  src={resolvePhotoUrl(student.photoUrl)!} 
                   alt={student.fullName} 
                   className="w-full h-full object-cover"
                 />

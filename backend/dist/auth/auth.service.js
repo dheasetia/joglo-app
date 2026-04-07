@@ -47,12 +47,15 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
+const users_service_1 = require("../users/users.service");
 let AuthService = class AuthService {
     prisma;
     jwt;
-    constructor(prisma, jwt) {
+    usersService;
+    constructor(prisma, jwt, usersService) {
         this.prisma = prisma;
         this.jwt = jwt;
+        this.usersService = usersService;
     }
     async register(dto) {
         const normalizedEmail = dto.email.trim().toLowerCase();
@@ -76,6 +79,7 @@ let AuthService = class AuthService {
                 email: true,
                 role: true,
                 name: true,
+                photoUrl: true,
             },
         });
         if (user.role === 'MUHAFFIZH') {
@@ -86,7 +90,8 @@ let AuthService = class AuthService {
                 },
             });
         }
-        return this.signToken(user.id, user.email, user.role, user.name, null);
+        const mappedUser = await this.usersService.getMe(user.id);
+        return this.signToken(mappedUser.id, mappedUser.email, mappedUser.role, mappedUser.name, mappedUser.photoUrl);
     }
     async login(dto) {
         const normalizedEmail = dto.email.trim().toLowerCase();
@@ -97,6 +102,7 @@ let AuthService = class AuthService {
                 email: true,
                 role: true,
                 name: true,
+                photoUrl: true,
                 passwordHash: true,
             },
         });
@@ -107,7 +113,8 @@ let AuthService = class AuthService {
         if (!passwordMatches) {
             throw new common_1.UnauthorizedException('Invalid credentials');
         }
-        return this.signToken(user.id, user.email, user.role, user.name, null);
+        const mappedUser = await this.usersService.getMe(user.id);
+        return this.signToken(mappedUser.id, mappedUser.email, mappedUser.role, mappedUser.name, mappedUser.photoUrl);
     }
     async signToken(userId, email, role, name, photoUrl) {
         const payload = { sub: userId, email, role, name };
@@ -132,6 +139,7 @@ exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        users_service_1.UsersService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

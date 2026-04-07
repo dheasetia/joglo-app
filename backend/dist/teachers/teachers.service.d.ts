@@ -12,14 +12,14 @@ export declare class TeachersService {
             halaqahs: number;
         };
     } & {
-        id: string;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         fullName: string;
         phone: string | null;
         notes: string | null;
-        userId: string;
     })[]>;
     findOne(id: string): Promise<{
         user: {
@@ -28,41 +28,41 @@ export declare class TeachersService {
         };
         halaqahs: {
             name: string;
-            id: string;
             isActive: boolean;
+            id: string;
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
             teacherId: string;
         }[];
     } & {
-        id: string;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         fullName: string;
         phone: string | null;
         notes: string | null;
-        userId: string;
     }>;
     update(id: string, dto: UpdateTeacherDto): Promise<{
-        id: string;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         fullName: string;
         phone: string | null;
         notes: string | null;
-        userId: string;
     }>;
     remove(id: string): Promise<{
-        id: string;
         isActive: boolean;
+        id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
         fullName: string;
         phone: string | null;
         notes: string | null;
-        userId: string;
     }>;
 }

@@ -18,6 +18,8 @@ export declare class DashboardController {
             student: {
                 fullName: string;
                 photoUrl: string | null;
+                level: string | null;
+                className: string | null;
             };
             teacher: {
                 fullName: string;
@@ -32,6 +34,8 @@ export declare class DashboardController {
             student: {
                 fullName: string;
                 photoUrl: string | null;
+                level: string | null;
+                className: string | null;
             };
             teacher: {
                 fullName: string;
@@ -49,6 +53,8 @@ export declare class DashboardController {
             student: {
                 fullName: string;
                 photoUrl: string | null;
+                level: string | null;
+                className: string | null;
             };
             teacher: {
                 fullName: string;
@@ -63,6 +69,8 @@ export declare class DashboardController {
             student: {
                 fullName: string;
                 photoUrl: string | null;
+                level: string | null;
+                className: string | null;
             };
             teacher: {
                 fullName: string;

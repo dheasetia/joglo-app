@@ -267,9 +267,9 @@ const HalaqahList: React.FC = () => {
                 <div className="absolute top-0 left-0 w-2 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="flex justify-between items-start mb-4">
                     <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex items-center justify-center bg-gray-50 text-primary">
-                        {halaqah.teacher?.user?.photoUrl && resolvePhotoUrl(halaqah.teacher.user.photoUrl) ? (
+                        {resolvePhotoUrl(halaqah.teacher?.user?.photoUrl) ? (
                             <img 
-                                src={resolvePhotoUrl(halaqah.teacher.user.photoUrl)} 
+                                src={resolvePhotoUrl(halaqah.teacher?.user?.photoUrl)!} 
                                 alt={halaqah.teacher?.fullName || 'Muhaffizh'} 
                                 className="w-full h-full object-cover"
                             />

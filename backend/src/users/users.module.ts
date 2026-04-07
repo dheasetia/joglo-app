@@ -7,5 +7,6 @@ import { StorageModule } from '../storage/storage.module';
   imports: [StorageModule],
   providers: [UsersService],
   controllers: [UsersController],
+  exports: [UsersService],
 })
 export class UsersModule {}

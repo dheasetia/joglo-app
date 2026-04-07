@@ -96,7 +96,7 @@ const ProfilePage: React.FC = () => {
         confirmPassword: '',
       }));
       setProfilePhoto(null);
-      setProfilePhotoPreview(resolvePhotoUrl(user?.photoUrl));
+      setProfilePhotoPreview(resolvePhotoUrl(user?.photoUrl) || '');
 
       if (myHalaqah) {
         setHalaqahForm({
@@ -124,17 +124,13 @@ const ProfilePage: React.FC = () => {
     e.preventDefault();
     if (!teacher || !user) return;
 
+    if (accountForm.newPassword && accountForm.newPassword !== accountForm.confirmPassword) {
+      toast.error('Konfirmasi password tidak sesuai.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      if (accountForm.newPassword && !accountForm.currentPassword) {
-        toast.error('Silakan isi password saat ini untuk mengganti password.');
-        return;
-      }
-
-      if (accountForm.newPassword && accountForm.newPassword !== accountForm.confirmPassword) {
-        toast.error('Konfirmasi password baru tidak sesuai.');
-        return;
-      }
 
       const userPayload = new FormData();
       userPayload.append('name', accountForm.name);
@@ -148,19 +144,26 @@ const ProfilePage: React.FC = () => {
       });
       const updatedUser = updatedUserRes.data;
 
-      await api.patch(`/teachers/${teacher.id}`, profileForm);
-
+      // Update password if provided
       if (accountForm.newPassword) {
         await api.patch('/users/me/password', {
-          currentPassword: accountForm.currentPassword,
           newPassword: accountForm.newPassword,
         });
       }
+
+      await api.patch(`/teachers/${teacher.id}`, profileForm);
 
       refreshUser({
         ...user,
         ...updatedUser,
       });
+
+      // Update preview with the new photoUrl from backend
+      if (updatedUser.photoUrl) {
+        setProfilePhotoPreview(resolvePhotoUrl(updatedUser.photoUrl) || '');
+        // Reset file input state to avoid using the Blob URL after save
+        setProfilePhoto(null);
+      }
 
       toast.success('Data diri berhasil diperbarui.');
       fetchProfileData();
@@ -241,13 +244,14 @@ const ProfilePage: React.FC = () => {
       <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
         <h2 className="text-base font-semibold text-primary">Aksi Cepat</h2>
         <div className="flex items-center gap-3">
-          {user?.photoUrl ? (
+          {resolvePhotoUrl(user?.photoUrl) && (
             <img
-              src={resolvePhotoUrl(user.photoUrl)}
-              alt={user.name}
+              src={resolvePhotoUrl(user?.photoUrl)!}
+              alt={user?.name}
               className="h-12 w-12 rounded-full object-cover border"
             />
-          ) : (
+          )}
+          {!resolvePhotoUrl(user?.photoUrl) && (
             <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
               {user?.name?.charAt(0)}
             </div>
@@ -304,7 +308,7 @@ const ProfilePage: React.FC = () => {
           }}
         />
         {profilePhotoPreview && (
-          <img src={profilePhotoPreview} alt="Preview profil" className="h-16 w-16 rounded-full object-cover border" />
+          <img src={profilePhotoPreview || undefined} alt="Preview profil" className="h-16 w-16 rounded-full object-cover border" />
         )}
         <input
           className="w-full border rounded-lg px-3 py-2 text-sm"
@@ -328,34 +332,27 @@ const ProfilePage: React.FC = () => {
         />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input
-            type="password"
             className="w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Password saat ini"
-            value={accountForm.currentPassword}
-            onChange={(e) => setAccountForm({ ...accountForm, currentPassword: e.target.value })}
-          />
-          <input
+            placeholder="Password Baru (kosongkan jika tidak ganti)"
             type="password"
-            className="w-full border rounded-lg px-3 py-2 text-sm"
-            placeholder="Password baru (opsional)"
             value={accountForm.newPassword}
             onChange={(e) => setAccountForm({ ...accountForm, newPassword: e.target.value })}
           />
+          <input
+            className="w-full border rounded-lg px-3 py-2 text-sm"
+            placeholder="Konfirmasi Password Baru"
+            type="password"
+            value={accountForm.confirmPassword}
+            onChange={(e) => setAccountForm({ ...accountForm, confirmPassword: e.target.value })}
+          />
         </div>
-        <input
-          type="password"
-          className="w-full border rounded-lg px-3 py-2 text-sm"
-          placeholder="Konfirmasi password baru"
-          value={accountForm.confirmPassword}
-          onChange={(e) => setAccountForm({ ...accountForm, confirmPassword: e.target.value })}
-        />
         <button
           type="submit"
-          disabled={!teacher || isSubmitting}
+          disabled={isSubmitting}
           className="px-4 py-2 rounded-lg bg-accent text-primary text-sm font-semibold inline-flex items-center gap-2 disabled:opacity-50"
         >
           <Save size={16} />
-          Simpan Data Diri
+          Simpan
         </button>
       </form>
 

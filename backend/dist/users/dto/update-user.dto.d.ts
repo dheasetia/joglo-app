@@ -10,6 +10,6 @@ export declare class UpdatePasswordDto {
     password: string;
 }
 export declare class UpdateMyPasswordDto {
-    currentPassword: string;
+    currentPassword?: string;
     newPassword: string;
 }

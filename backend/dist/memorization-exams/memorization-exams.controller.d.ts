@@ -17,20 +17,20 @@ export declare class MemorizationExamsController {
         createdAt: Date;
         updatedAt: Date;
         notes: string | null;
-        examDate: Date;
-        examType: import("@prisma/client").$Enums.ExamType;
-        title: string | null;
-        studentId: string;
         teacherId: string;
         halaqahId: string;
+        examDate: Date;
+        studentId: string;
         startPage: number | null;
         endPage: number | null;
-        startJuz: number | null;
-        endJuz: number | null;
-        periodStart: Date | null;
-        periodEnd: Date | null;
         score: number;
         recommendation: import("@prisma/client").$Enums.Recommendation;
+        examType: import("@prisma/client").$Enums.ExamType;
+        title: string | null;
+        periodStart: Date | null;
+        periodEnd: Date | null;
         resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+        startJuz: number | null;
+        endJuz: number | null;
     }>;
 }

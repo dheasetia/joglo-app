@@ -52,6 +52,8 @@ export class DashboardService {
       studentName: string | null;
       teacherName: string | null;
       studentPhoto: string | null;
+      studentLevel: string | null;
+      studentClass: string | null;
     }>>`
       SELECT
         ms."id",
@@ -60,7 +62,9 @@ export class DashboardService {
         ms."sessionType"::text AS "sessionType",
         s."fullName" AS "studentName",
         t."fullName" AS "teacherName",
-        s."photoUrl" AS "studentPhoto"
+        s."photoUrl" AS "studentPhoto",
+        s."level" AS "studentLevel",
+        s."className" AS "studentClass"
       FROM "MemorizationSession" ms
       LEFT JOIN "Student" s ON s."id" = ms."studentId"
       LEFT JOIN "Teacher" t ON t."id" = ms."teacherId"
@@ -76,6 +80,8 @@ export class DashboardService {
       studentName: string | null;
       teacherName: string | null;
       studentPhoto: string | null;
+      studentLevel: string | null;
+      studentClass: string | null;
     }>>`
       SELECT
         ms."id",
@@ -84,7 +90,9 @@ export class DashboardService {
         ms."sessionType"::text AS "sessionType",
         s."fullName" AS "studentName",
         t."fullName" AS "teacherName",
-        s."photoUrl" AS "studentPhoto"
+        s."photoUrl" AS "studentPhoto",
+        s."level" AS "studentLevel",
+        s."className" AS "studentClass"
       FROM "MemorizationSession" ms
       LEFT JOIN "Student" s ON s."id" = ms."studentId"
       LEFT JOIN "Teacher" t ON t."id" = ms."teacherId"
@@ -101,6 +109,8 @@ export class DashboardService {
       studentName: string | null;
       teacherName: string | null;
       studentPhoto: string | null;
+      studentLevel: string | null;
+      studentClass: string | null;
     }> = [];
 
     try {
@@ -119,6 +129,8 @@ export class DashboardService {
         student: await this.mapPhotoUrl({
           fullName: row.studentName ?? '-',
           photoUrl: row.studentPhoto,
+          level: row.studentLevel,
+          className: row.studentClass,
         }),
         teacher: { fullName: row.teacherName ?? '-' },
       })),
@@ -135,6 +147,8 @@ export class DashboardService {
       studentName: string | null;
       teacherName: string | null;
       studentPhoto: string | null;
+      studentLevel: string | null;
+      studentClass: string | null;
     }>>`
       SELECT
         me."id",
@@ -144,7 +158,9 @@ export class DashboardService {
         me."examType"::text AS "examType",
         s."fullName" AS "studentName",
         t."fullName" AS "teacherName",
-        s."photoUrl" AS "studentPhoto"
+        s."photoUrl" AS "studentPhoto",
+        s."level" AS "studentLevel",
+        s."className" AS "studentClass"
       FROM "MemorizationExam" me
       LEFT JOIN "Student" s ON s."id" = me."studentId"
       LEFT JOIN "Teacher" t ON t."id" = me."teacherId"
@@ -161,6 +177,8 @@ export class DashboardService {
       studentName: string | null;
       teacherName: string | null;
       studentPhoto: string | null;
+      studentLevel: string | null;
+      studentClass: string | null;
     }>>`
       SELECT
         me."id",
@@ -170,7 +188,9 @@ export class DashboardService {
         me."examType"::text AS "examType",
         s."fullName" AS "studentName",
         t."fullName" AS "teacherName",
-        s."photoUrl" AS "studentPhoto"
+        s."photoUrl" AS "studentPhoto",
+        s."level" AS "studentLevel",
+        s."className" AS "studentClass"
       FROM "MemorizationExam" me
       LEFT JOIN "Student" s ON s."id" = me."studentId"
       LEFT JOIN "Teacher" t ON t."id" = me."teacherId"
@@ -188,6 +208,8 @@ export class DashboardService {
       studentName: string | null;
       teacherName: string | null;
       studentPhoto: string | null;
+      studentLevel: string | null;
+      studentClass: string | null;
     }> = [];
 
     try {
@@ -207,6 +229,8 @@ export class DashboardService {
         student: await this.mapPhotoUrl({
           fullName: row.studentName ?? '-',
           photoUrl: row.studentPhoto,
+          level: row.studentLevel,
+          className: row.studentClass,
         }),
         teacher: { fullName: row.teacherName ?? '-' },
       })),
