@@ -83,6 +83,12 @@ let MemorizationExamsController = class MemorizationExamsController {
     createNote(user, id, dto) {
         return this.examsService.createNote(user, id, dto);
     }
+    updateNote(user, id, noteId, dto) {
+        return this.examsService.updateNote(user, id, noteId, dto);
+    }
+    removeNote(user, id, noteId) {
+        return this.examsService.removeNote(user, id, noteId);
+    }
     remove(id) {
         return this.examsService.remove(id);
     }
@@ -131,6 +137,27 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, exam_dto_1.CreateExamNoteDto]),
     __metadata("design:returntype", void 0)
 ], MemorizationExamsController.prototype, "createNote", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
+    (0, common_1.Patch)(':id/notes/:noteId'),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Param)('noteId')),
+    __param(3, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String, exam_dto_1.CreateExamNoteDto]),
+    __metadata("design:returntype", void 0)
+], MemorizationExamsController.prototype, "updateNote", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
+    (0, common_1.Delete)(':id/notes/:noteId'),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Param)('noteId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", void 0)
+], MemorizationExamsController.prototype, "removeNote", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, common_1.Delete)(':id'),

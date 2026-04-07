@@ -123,6 +123,29 @@ export class MemorizationSessionsController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
+  @Patch(':id/notes/:noteId')
+  async updateNote(
+    @GetUser() user: any,
+    @Param('id') id: string,
+    @Param('noteId') noteId: string,
+    @Body() dto: CreateSessionNoteDto,
+  ) {
+    await this.ensureSessionAccess(id, user);
+    return this.sessionsService.updateNote(id, noteId, dto);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
+  @Delete(':id/notes/:noteId')
+  async removeNote(
+    @GetUser() user: any,
+    @Param('id') id: string,
+    @Param('noteId') noteId: string,
+  ) {
+    await this.ensureSessionAccess(id, user);
+    return this.sessionsService.removeNote(id, noteId);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
   @Patch(':id')
   async update(@GetUser() user: any, @Param('id') id: string, @Body() updateSessionDto: UpdateSessionDto) {
     await this.ensureSessionAccess(id, user);

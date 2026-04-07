@@ -105,6 +105,14 @@ let MemorizationSessionsController = class MemorizationSessionsController {
         await this.ensureSessionAccess(id, user);
         return this.sessionsService.createNote(id, dto);
     }
+    async updateNote(user, id, noteId, dto) {
+        await this.ensureSessionAccess(id, user);
+        return this.sessionsService.updateNote(id, noteId, dto);
+    }
+    async removeNote(user, id, noteId) {
+        await this.ensureSessionAccess(id, user);
+        return this.sessionsService.removeNote(id, noteId);
+    }
     async update(user, id, updateSessionDto) {
         await this.ensureSessionAccess(id, user);
         return this.sessionsService.update(id, updateSessionDto);
@@ -160,6 +168,27 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, session_dto_1.CreateSessionNoteDto]),
     __metadata("design:returntype", Promise)
 ], MemorizationSessionsController.prototype, "createNote", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
+    (0, common_1.Patch)(':id/notes/:noteId'),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Param)('noteId')),
+    __param(3, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String, session_dto_1.CreateSessionNoteDto]),
+    __metadata("design:returntype", Promise)
+], MemorizationSessionsController.prototype, "updateNote", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
+    (0, common_1.Delete)(':id/notes/:noteId'),
+    __param(0, (0, get_user_decorator_1.GetUser)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Param)('noteId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], MemorizationSessionsController.prototype, "removeNote", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.MUHAFFIZH),
     (0, common_1.Patch)(':id'),

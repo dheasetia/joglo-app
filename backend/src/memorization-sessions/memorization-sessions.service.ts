@@ -380,6 +380,55 @@ export class MemorizationSessionsService {
     return this.findOne(sessionId);
   }
 
+  async updateNote(sessionId: string, noteId: string, dto: { noteType?: SessionNoteType; page?: number; line?: number; description?: string }) {
+    const note = await this.prisma.sessionNote.findUnique({
+      where: { id: noteId },
+    });
+
+    if (!note || note.sessionId !== sessionId) {
+      throw new NotFoundException(`Catatan dengan ID ${noteId} tidak ditemukan di sesi ini.`);
+    }
+
+    if (dto.page !== undefined) {
+      const session = await this.prisma.memorizationSession.findUnique({
+        where: { id: sessionId },
+        select: { startPage: true, endPage: true },
+      });
+
+      if (session) {
+        if (session.startPage && dto.page < session.startPage) {
+          throw new BadRequestException('Halaman catatan tidak boleh kurang dari halaman mulai sesi.');
+        }
+        if (session.endPage && dto.page > session.endPage) {
+          throw new BadRequestException('Halaman catatan tidak boleh melebihi halaman akhir sesi.');
+        }
+      }
+    }
+
+    await this.prisma.sessionNote.update({
+      where: { id: noteId },
+      data: dto,
+    });
+
+    return this.findOne(sessionId);
+  }
+
+  async removeNote(sessionId: string, noteId: string) {
+    const note = await this.prisma.sessionNote.findUnique({
+      where: { id: noteId },
+    });
+
+    if (!note || note.sessionId !== sessionId) {
+      throw new NotFoundException(`Catatan dengan ID ${noteId} tidak ditemukan di sesi ini.`);
+    }
+
+    await this.prisma.sessionNote.delete({
+      where: { id: noteId },
+    });
+
+    return this.findOne(sessionId);
+  }
+
   async remove(id: string, requesterRole: UserRole, teacherId?: string) {
     const session = await this.findOne(id);
 

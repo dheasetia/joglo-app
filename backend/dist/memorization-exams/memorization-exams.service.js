@@ -295,6 +295,68 @@ let MemorizationExamsService = class MemorizationExamsService {
         }
         return this.findOne(examId);
     }
+    async updateNote(user, examId, noteId, dto) {
+        const note = await this.prisma.examNote.findUnique({
+            where: { id: noteId },
+            include: {
+                exam: {
+                    include: {
+                        teacher: {
+                            select: { userId: true },
+                        },
+                    },
+                },
+            },
+        });
+        if (!note || note.examId !== examId) {
+            throw new common_1.NotFoundException(`Catatan dengan ID ${noteId} tidak ditemukan di ujian ini.`);
+        }
+        if (user.role !== client_1.UserRole.ADMIN && note.exam.teacher?.userId !== user.id) {
+            throw new common_1.UnauthorizedException('Anda tidak memiliki akses untuk mengubah catatan pada ujian ini');
+        }
+        if (dto.page !== undefined) {
+            const exam = note.exam;
+            if (exam.startPage && dto.page < exam.startPage) {
+                throw new common_1.BadRequestException(`Halaman catatan (${dto.page}) tidak boleh kurang dari halaman mulai ujian (${exam.startPage}).`);
+            }
+            if (exam.endPage && dto.page > exam.endPage) {
+                throw new common_1.BadRequestException(`Halaman catatan (${dto.page}) tidak boleh melebihi halaman akhir ujian (${exam.endPage}).`);
+            }
+        }
+        await this.prisma.examNote.update({
+            where: { id: noteId },
+            data: {
+                ...dto,
+                page: dto.page !== undefined ? Number(dto.page) : undefined,
+                line: dto.line !== undefined ? Number(dto.line) : undefined,
+            },
+        });
+        return this.findOne(examId);
+    }
+    async removeNote(user, examId, noteId) {
+        const note = await this.prisma.examNote.findUnique({
+            where: { id: noteId },
+            include: {
+                exam: {
+                    include: {
+                        teacher: {
+                            select: { userId: true },
+                        },
+                    },
+                },
+            },
+        });
+        if (!note || note.examId !== examId) {
+            throw new common_1.NotFoundException(`Catatan dengan ID ${noteId} tidak ditemukan di ujian ini.`);
+        }
+        if (user.role !== client_1.UserRole.ADMIN && note.exam.teacher?.userId !== user.id) {
+            throw new common_1.UnauthorizedException('Anda tidak memiliki akses untuk menghapus catatan pada ujian ini');
+        }
+        await this.prisma.examNote.delete({
+            where: { id: noteId },
+        });
+        return this.findOne(examId);
+    }
     async remove(id) {
         await this.findOne(id);
         return this.prisma.memorizationExam.delete({

@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import Modal from '../../components/common/modals/Modal';
+import ConfirmationModal from '../../components/common/modals/ConfirmationModal';
 import { useToast } from '../../components/common/toast/ToastProvider';
-import { MemorizationSession, Recommendation, SessionNoteType } from '../../types';
+import { MemorizationSession, Recommendation, SessionNoteType, SessionNote } from '../../types';
 import { formatPageRangeWithJuz, getJuzFromMadinahPage } from '../../utils/quranPage';
 
 const SessionDetail: React.FC = () => {
@@ -16,6 +17,10 @@ const SessionDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<MemorizationSession | null>(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+  const [isDeletingNote, setIsDeletingNote] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<SessionNote | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingSession, setIsSavingSession] = useState(false);
   const [sessionForm, setSessionForm] = useState({
@@ -64,6 +69,7 @@ const SessionDetail: React.FC = () => {
 
   const openNoteModal = () => {
     if (!session) return;
+    setSelectedNote(null);
     setNoteForm({
       page: session.startPage || 1,
       noteType: SessionNoteType.KESALAHAN,
@@ -73,21 +79,61 @@ const SessionDetail: React.FC = () => {
     setIsNoteModalOpen(true);
   };
 
-  const handleCreateNote = async (e: React.FormEvent) => {
+  const openEditNoteModal = (note: SessionNote) => {
+    setSelectedNote(note);
+    setNoteForm({
+      page: note.page,
+      noteType: note.noteType,
+      line: note.line,
+      description: note.description,
+    });
+    setIsNoteModalOpen(true);
+  };
+
+  const handleSaveNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
 
     try {
       setIsSubmitting(true);
-      const response = await api.post(`/memorization-sessions/${id}/notes`, noteForm);
+      let response;
+      if (selectedNote) {
+        response = await api.patch(`/memorization-sessions/${id}/notes/${selectedNote.id}`, noteForm);
+        toast.success("Catatan Tasmi' berhasil diperbarui.");
+      } else {
+        response = await api.post(`/memorization-sessions/${id}/notes`, noteForm);
+        toast.success("Catatan Tasmi' berhasil ditambahkan.");
+      }
       setSession(response.data);
       setIsNoteModalOpen(false);
-      toast.success("Catatan Tasmi' berhasil ditambahkan.");
     } catch (error: any) {
       const message = error?.response?.data?.message;
       toast.error(Array.isArray(message) ? message.join(', ') : (message || "Gagal menyimpan catatan Tasmi'."));
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const confirmDeleteNote = (noteId: string) => {
+    setNoteToDelete(noteId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteNote = async () => {
+    if (!id || !noteToDelete) return;
+
+    try {
+      setIsDeletingNote(true);
+      const response = await api.delete(`/memorization-sessions/${id}/notes/${noteToDelete}`);
+      setSession(response.data);
+      toast.success("Catatan Tasmi' berhasil dihapus.");
+      setIsDeleteModalOpen(false);
+      setNoteToDelete(null);
+    } catch (error: any) {
+      const message = error?.response?.data?.message;
+      toast.error(Array.isArray(message) ? message.join(', ') : (message || "Gagal menghapus catatan Tasmi'."));
+    } finally {
+      setIsDeletingNote(false);
     }
   };
 
@@ -219,11 +265,29 @@ const SessionDetail: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {session.noteItems?.map((item) => (
               <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getNoteTypeClass(item.noteType)}`}>
-                    {getNoteTypeLabel(item.noteType)}
-                  </span>
-                  <span className="text-xs text-gray-500">Hal. {item.page} • Baris {item.line} • Juz {getJuzFromMadinahPage(item.page)}</span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getNoteTypeClass(item.noteType)}`}>
+                      {getNoteTypeLabel(item.noteType)}
+                    </span>
+                    <span className="text-xs text-gray-500">Hal. {item.page} • Baris {item.line} • Juz {getJuzFromMadinahPage(item.page)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openEditNoteModal(item)}
+                      className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Edit Catatan"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => confirmDeleteNote(item.id)}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Hapus Catatan"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.description}</p>
               </div>
@@ -232,8 +296,8 @@ const SessionDetail: React.FC = () => {
         )}
       </div>
 
-      <Modal isOpen={isNoteModalOpen} onClose={() => setIsNoteModalOpen(false)} title="Tambah Catatan Tasmi'">
-        <form onSubmit={handleCreateNote} className="space-y-3">
+      <Modal isOpen={isNoteModalOpen} onClose={() => setIsNoteModalOpen(false)} title={selectedNote ? "Edit Catatan Tasmi'" : "Tambah Catatan Tasmi'"}>
+        <form onSubmit={handleSaveNote} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Halaman</label>
             <input
@@ -293,6 +357,15 @@ const SessionDetail: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteNote}
+        title="Hapus Catatan Tasmi'"
+        message="Apakah Anda yakin ingin menghapus catatan ini? Tindakan ini tidak dapat dibatalkan."
+        isLoading={isDeletingNote}
+      />
     </div>
   );
 };

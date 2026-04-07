@@ -10,25 +10,27 @@ export declare class MemorizationExamsController {
     findOne(id: string): Promise<any>;
     update(id: string, updateExamDto: UpdateExamDto): Promise<any>;
     createNote(user: any, id: string, dto: CreateExamNoteDto): Promise<any>;
+    updateNote(user: any, id: string, noteId: string, dto: CreateExamNoteDto): Promise<any>;
+    removeNote(user: any, id: string, noteId: string): Promise<any>;
     remove(id: string): Promise<{
         id: string;
+        notes: string | null;
         createdAt: Date;
         updatedAt: Date;
-        notes: string | null;
-        teacherId: string;
-        halaqahId: string;
-        studentId: string;
-        startPage: number | null;
-        endPage: number | null;
-        score: number;
-        recommendation: import("@prisma/client").$Enums.Recommendation;
         examDate: Date;
         examType: import("@prisma/client").$Enums.ExamType;
         title: string | null;
-        periodStart: Date | null;
-        periodEnd: Date | null;
-        resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
+        studentId: string;
+        teacherId: string;
+        halaqahId: string;
+        startPage: number | null;
+        endPage: number | null;
         startJuz: number | null;
         endJuz: number | null;
+        periodStart: Date | null;
+        periodEnd: Date | null;
+        score: number;
+        recommendation: import("@prisma/client").$Enums.Recommendation;
+        resultStatus: import("@prisma/client").$Enums.ExamResultStatus;
     }>;
 }

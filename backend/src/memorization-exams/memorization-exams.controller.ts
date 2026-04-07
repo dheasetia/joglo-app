@@ -89,6 +89,18 @@ export class MemorizationExamsController {
     return this.examsService.createNote(user, id, dto);
   }
 
+  @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
+  @Patch(':id/notes/:noteId')
+  updateNote(@GetUser() user: any, @Param('id') id: string, @Param('noteId') noteId: string, @Body() dto: CreateExamNoteDto) {
+    return this.examsService.updateNote(user, id, noteId, dto);
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.MUHAFFIZH)
+  @Delete(':id/notes/:noteId')
+  removeNote(@GetUser() user: any, @Param('id') id: string, @Param('noteId') noteId: string) {
+    return this.examsService.removeNote(user, id, noteId);
+  }
+
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {

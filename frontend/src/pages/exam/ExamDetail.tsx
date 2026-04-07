@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2 } from 'lucide-react';
 import api from '../../services/api';
 import Modal from '../../components/common/modals/Modal';
+import ConfirmationModal from '../../components/common/modals/ConfirmationModal';
 import { useToast } from '../../components/common/toast/ToastProvider';
-import { MemorizationExam, ExamResultStatus, SessionNoteType, Recommendation, Gender } from '../../types';
+import { MemorizationExam, ExamResultStatus, SessionNoteType, Recommendation, Gender, ExamNote } from '../../types';
 import { formatPageRangeWithJuz, getJuzFromMadinahPage } from '../../utils/quranPage';
 import { getExamTypeLabel } from '../../utils/examTypeLabel';
 
@@ -17,6 +18,10 @@ const ExamDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [exam, setExam] = useState<MemorizationExam | null>(null);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
+  const [isDeletingNote, setIsDeletingNote] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<ExamNote | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingExam, setIsSavingExam] = useState(false);
   
@@ -67,6 +72,7 @@ const ExamDetail: React.FC = () => {
 
   const openNoteModal = () => {
     if (!exam) return;
+    setSelectedNote(null);
     
     // Default page: exam startPage if no notes, otherwise last note page
     let defaultPage = exam.startPage || 1;
@@ -84,27 +90,69 @@ const ExamDetail: React.FC = () => {
     setIsNoteModalOpen(true);
   };
 
-  const handleCreateNote = useCallback(async (e: React.FormEvent) => {
+  const openEditNoteModal = (note: ExamNote) => {
+    setSelectedNote(note);
+    setNoteForm({
+      page: note.page,
+      noteType: note.noteType,
+      line: note.line,
+      description: note.description,
+    });
+    setIsNoteModalOpen(true);
+  };
+
+  const handleSaveNote = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
 
     try {
       setIsSubmitting(true);
-      const response = await api.post(`/memorization-exams/${id}/notes`, {
+      let response;
+      const data = {
         ...noteForm,
         page: Number(noteForm.page),
         line: Number(noteForm.line),
-      });
+      };
+
+      if (selectedNote) {
+        response = await api.patch(`/memorization-exams/${id}/notes/${selectedNote.id}`, data);
+        toast.success("Catatan ujian berhasil diperbarui.");
+      } else {
+        response = await api.post(`/memorization-exams/${id}/notes`, data);
+        toast.success("Catatan ujian berhasil ditambahkan.");
+      }
       setExam(response.data);
       setIsNoteModalOpen(false);
-      toast.success("Catatan ujian berhasil ditambahkan.");
     } catch (error: any) {
       const message = error?.response?.data?.message;
       toast.error(Array.isArray(message) ? message.join(', ') : (message || "Gagal menyimpan catatan ujian."));
     } finally {
       setIsSubmitting(false);
     }
-  }, [id, noteForm, toast]);
+  }, [id, noteForm, selectedNote, toast]);
+
+  const confirmDeleteNote = (noteId: string) => {
+    setNoteToDelete(noteId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteNote = async () => {
+    if (!id || !noteToDelete) return;
+
+    try {
+      setIsDeletingNote(true);
+      const response = await api.delete(`/memorization-exams/${id}/notes/${noteToDelete}`);
+      setExam(response.data);
+      toast.success("Catatan ujian berhasil dihapus.");
+      setIsDeleteModalOpen(false);
+      setNoteToDelete(null);
+    } catch (error: any) {
+      const message = error?.response?.data?.message;
+      toast.error(Array.isArray(message) ? message.join(', ') : (message || "Gagal menghapus catatan ujian."));
+    } finally {
+      setIsDeletingNote(false);
+    }
+  };
 
   const handleSaveExam = async () => {
     if (!id) return;
@@ -235,11 +283,29 @@ const ExamDetail: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {exam.noteItems?.map((item) => (
               <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getNoteTypeClass(item.noteType)}`}>
-                    {getNoteTypeLabel(item.noteType)}
-                  </span>
-                  <span className="text-xs text-gray-500">Hal. {item.page} • Baris {item.line} • Juz {getJuzFromMadinahPage(item.page)}</span>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold border ${getNoteTypeClass(item.noteType)}`}>
+                      {getNoteTypeLabel(item.noteType)}
+                    </span>
+                    <span className="text-xs text-gray-500">Hal. {item.page} • Baris {item.line} • Juz {getJuzFromMadinahPage(item.page)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openEditNoteModal(item)}
+                      className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Edit Catatan"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => confirmDeleteNote(item.id)}
+                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Hapus Catatan"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.description}</p>
               </div>
@@ -248,8 +314,8 @@ const ExamDetail: React.FC = () => {
         )}
       </div>
 
-      <Modal isOpen={isNoteModalOpen} onClose={() => setIsNoteModalOpen(false)} title="Tambah Catatan Ujian">
-        <form onSubmit={handleCreateNote} className="space-y-3">
+      <Modal isOpen={isNoteModalOpen} onClose={() => setIsNoteModalOpen(false)} title={selectedNote ? "Edit Catatan Ujian" : "Tambah Catatan Ujian"}>
+        <form onSubmit={handleSaveNote} className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Halaman</label>
             <input
@@ -312,6 +378,15 @@ const ExamDetail: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteNote}
+        title="Hapus Catatan Ujian"
+        message="Apakah Anda yakin ingin menghapus catatan ini? Tindakan ini tidak dapat dibatalkan."
+        isLoading={isDeletingNote}
+      />
     </div>
   );
 };
