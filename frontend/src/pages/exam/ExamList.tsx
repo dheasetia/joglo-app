@@ -217,6 +217,8 @@ const ExamList: React.FC = () => {
                 <option value={ExamType.JUZ_IYYAH}>Juz'iyyah</option>
                 <option value={ExamType.FIVE_JUZ}>Kelipatan 5 juz</option>
                 <option value={ExamType.FINAL_30_JUZ}>Ujian Akhir 30 Juz</option>
+                <option value={ExamType.SEMESTER_GASAL}>Ujian Akhir Semester Gasal</option>
+                <option value={ExamType.SEMESTER_GENAP}>Ujian Akhir Semester Genap</option>
               </select>
             </div>
           </div>
@@ -377,6 +379,8 @@ const ExamList: React.FC = () => {
               <option value={ExamType.JUZ_IYYAH}>Juz'iyyah</option>
               <option value={ExamType.FIVE_JUZ}>Kelipatan 5 juz</option>
               <option value={ExamType.FINAL_30_JUZ}>Ujian Akhir 30 Juz</option>
+              <option value={ExamType.SEMESTER_GASAL}>Ujian Akhir Semester Gasal</option>
+              <option value={ExamType.SEMESTER_GENAP}>Ujian Akhir Semester Genap</option>
             </select>
           </div>
           <select 

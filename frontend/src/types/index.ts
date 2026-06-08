@@ -143,6 +143,8 @@ export enum ExamType {
   JUZ_IYYAH = 'JUZ_IYYAH',
   FIVE_JUZ = 'FIVE_JUZ',
   FINAL_30_JUZ = 'FINAL_30_JUZ',
+  SEMESTER_GASAL = 'SEMESTER_GASAL',
+  SEMESTER_GENAP = 'SEMESTER_GENAP',
 }
 
 export enum ExamResultStatus {

@@ -233,6 +233,8 @@ enum ExamType {
   JUZ_IYYAH
   FIVE_JUZ
   FINAL_30_JUZ
+  SEMESTER_GASAL
+  SEMESTER_GENAP
 }
 
 enum Recommendation {

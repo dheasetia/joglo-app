@@ -10,8 +10,8 @@ export declare class UsersService {
     private isPrismaError;
     private isMissingPhotoUrlColumnError;
     findAll(): Promise<{
-        name: string;
         email: string;
+        name: string;
         role: import("@prisma/client").$Enums.UserRole;
         isActive: boolean;
         photoUrl: string | null;

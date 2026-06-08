@@ -28,8 +28,8 @@ export declare class UsersController {
         } | null | undefined;
     }>;
     findAll(): Promise<{
-        name: string;
         email: string;
+        name: string;
         role: import("@prisma/client").$Enums.UserRole;
         isActive: boolean;
         photoUrl: string | null;
